@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\source\main.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\plugin_frame.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\plugin_application.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\source\helpers\check.h">
+      <Filter>source\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\npp\menu_cmd_id.h">
+      <Filter>include\npp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\npp\notepad_plus_msgs.h">
+      <Filter>include\npp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\npp\plugin_interface.h">
+      <Filter>include\npp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\npp\scintilla.h">
+      <Filter>include\npp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\plugin_frame.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\plugin_application.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\registry.h">
+      <Filter>source</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="source">
+      <UniqueIdentifier>{e1f63d41-7c9a-4b97-8e8f-32a8ad0bc717}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\helpers">
+      <UniqueIdentifier>{e7463df2-e88f-4ead-9d86-0a3044ce4357}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{b1b933fd-543a-4f77-884f-2b613977e1cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\npp">
+      <UniqueIdentifier>{a7c0eddc-7fdf-44b0-90e4-54b7acbb45ea}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
