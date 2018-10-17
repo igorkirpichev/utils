@@ -23,6 +23,7 @@
     <ClInclude Include="..\include\npp\notepad_plus_msgs.h" />
     <ClInclude Include="..\include\npp\plugin_interface.h" />
     <ClInclude Include="..\include\npp\scintilla.h" />
+    <ClInclude Include="..\resource\resource.h" />
     <ClInclude Include="..\source\helpers\check.h" />
     <ClInclude Include="..\source\plugin_application.h" />
     <ClInclude Include="..\source\plugin_frame.h" />
@@ -32,6 +33,9 @@
     <ClCompile Include="..\source\main.cpp" />
     <ClCompile Include="..\source\plugin_application.cpp" />
     <ClCompile Include="..\source\plugin_frame.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\resource\TracesAnalyzer.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -135,7 +139,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile />
       <PrecompiledHeaderOutputFile />
-      <AdditionalIncludeDirectories>..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\resource;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>

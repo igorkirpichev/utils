@@ -30,6 +30,7 @@ private:
 private:
     afx_msg int OnCreate(LPCREATESTRUCT createStruct);
     afx_msg void OnWindowPosChanged(WINDOWPOS* wndPos);
+    afx_msg void OnFileOpen();
 
 private:
     PluginInfo const m_info;

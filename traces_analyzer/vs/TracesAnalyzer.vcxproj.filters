@@ -36,6 +36,9 @@
     <ClInclude Include="..\source\registry.h">
       <Filter>source</Filter>
     </ClInclude>
+    <ClInclude Include="..\resource\resource.h">
+      <Filter>resource</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="source">
@@ -50,5 +53,13 @@
     <Filter Include="include\npp">
       <UniqueIdentifier>{a7c0eddc-7fdf-44b0-90e4-54b7acbb45ea}</UniqueIdentifier>
     </Filter>
+    <Filter Include="resource">
+      <UniqueIdentifier>{d73484d5-4d19-4611-83be-0ce293de9390}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\resource\TracesAnalyzer.rc">
+      <Filter>resource</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

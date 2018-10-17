@@ -1,3 +1,4 @@
+#include "resource.h"
 #include "plugin_frame.h"
 #include "registry.h"
 
@@ -10,6 +11,7 @@
 BEGIN_MESSAGE_MAP(PluginFrame, CFrameWndEx)
     ON_WM_CREATE()
     ON_WM_WINDOWPOSCHANGED()
+    ON_COMMAND(ID_FILE_OPEN, &PluginFrame::OnFileOpen)
 END_MESSAGE_MAP()
 
 PluginFrame::PluginFrame(PluginInfo const& info) :
@@ -23,7 +25,8 @@ PluginFrame::PluginFrame(PluginInfo const& info) :
         static_cast<int>(application->GetProfileInt(REG_SECTION_FRAME, REG_ENTRY_FRAME_LAST_PLACE_LEFT, CW_USEDEFAULT)),
         static_cast<int>(application->GetProfileInt(REG_SECTION_FRAME, REG_ENTRY_FRAME_LAST_PLACE_TOP, CW_USEDEFAULT)));
     
-    WIN_CHECK(Create(NULL, m_info.name.data(), WS_OVERLAPPEDWINDOW | FWS_ADDTOTITLE, windowRect, NULL));
+    WIN_CHECK(Create(NULL, m_info.name.data(), WS_OVERLAPPEDWINDOW | FWS_ADDTOTITLE, windowRect, NULL,
+        MAKEINTRESOURCE(IDR_MAINFRAME)));
 }
 
 PluginFrame::~PluginFrame()
@@ -54,4 +57,9 @@ void PluginFrame::OnWindowPosChanged(WINDOWPOS* wndPos)
     pApp->WriteProfileInt(REG_SECTION_FRAME, REG_ENTRY_FRAME_LAST_PLACE_TOP,    wndPos->y);
     pApp->WriteProfileInt(REG_SECTION_FRAME, REG_ENTRY_FRAME_LAST_PLACE_WIDTH,  wndPos->cx);
     pApp->WriteProfileInt(REG_SECTION_FRAME, REG_ENTRY_FRAME_LAST_PLACE_HEIGHT, wndPos->cy);
+}
+
+void PluginFrame::OnFileOpen()
+{
+    
 }
