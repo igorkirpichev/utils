@@ -28,7 +28,6 @@ private:
     PluginFrame& operator=(PluginFrame const&) = delete;
 
 private:
-    virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
     afx_msg int OnCreate(LPCREATESTRUCT createStruct);
     afx_msg void OnWindowPosChanged(WINDOWPOS* wndPos);
 

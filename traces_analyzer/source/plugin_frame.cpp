@@ -15,26 +15,19 @@ END_MESSAGE_MAP()
 PluginFrame::PluginFrame(PluginInfo const& info) :
     m_info(info)
 {
-    WIN_CHECK(Create(NULL, m_info.name.data()));
-
+    CWinApp* const application = AfxGetApp();
+    CRect windowRect(0, 0,
+        static_cast<int>(application->GetProfileInt(REG_SECTION_FRAME, REG_ENTRY_FRAME_LAST_PLACE_WIDTH, CW_USEDEFAULT)),
+        static_cast<int>(application->GetProfileInt(REG_SECTION_FRAME, REG_ENTRY_FRAME_LAST_PLACE_HEIGHT, CW_USEDEFAULT)));
+    windowRect.OffsetRect(
+        static_cast<int>(application->GetProfileInt(REG_SECTION_FRAME, REG_ENTRY_FRAME_LAST_PLACE_LEFT, CW_USEDEFAULT)),
+        static_cast<int>(application->GetProfileInt(REG_SECTION_FRAME, REG_ENTRY_FRAME_LAST_PLACE_TOP, CW_USEDEFAULT)));
+    
+    WIN_CHECK(Create(NULL, m_info.name.data(), WS_OVERLAPPEDWINDOW | FWS_ADDTOTITLE, windowRect, NULL));
 }
 
 PluginFrame::~PluginFrame()
 {
-}
-
-BOOL PluginFrame::PreCreateWindow(CREATESTRUCT& cs)
-{
-    if (!CFrameWndEx::PreCreateWindow(cs))
-        return FALSE;
-
-    CWinApp* pApp = AfxGetApp();
-    cs.x    = pApp->GetProfileInt(REG_SECTION_FRAME, REG_ENTRY_FRAME_LAST_PLACE_LEFT,   CW_USEDEFAULT);
-    cs.y    = pApp->GetProfileInt(REG_SECTION_FRAME, REG_ENTRY_FRAME_LAST_PLACE_TOP,    CW_USEDEFAULT);
-    cs.cx   = pApp->GetProfileInt(REG_SECTION_FRAME, REG_ENTRY_FRAME_LAST_PLACE_WIDTH,  CW_USEDEFAULT);
-    cs.cy   = pApp->GetProfileInt(REG_SECTION_FRAME, REG_ENTRY_FRAME_LAST_PLACE_HEIGHT, CW_USEDEFAULT);
-
-    return TRUE;
 }
 
 int PluginFrame::OnCreate(LPCREATESTRUCT createStruct)
