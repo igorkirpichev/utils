@@ -32,6 +32,10 @@ private:
     afx_msg void OnWindowPosChanged(WINDOWPOS* wndPos);
     afx_msg void OnFileOpen();
 
+    void LoadScheme(std::wstring const& schemeFilePath);
+    void CloseScheme();
+    bool IsSchemeLoaded() const;
+
 private:
     PluginInfo const m_info;
 };

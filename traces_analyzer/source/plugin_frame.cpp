@@ -61,5 +61,29 @@ void PluginFrame::OnWindowPosChanged(WINDOWPOS* wndPos)
 
 void PluginFrame::OnFileOpen()
 {
-    
+    CFileDialog dialog(TRUE, TEXT("Open analysis scheme"), TEXT(".xml")/*SCHEME_FILE_EXTENSTION*/, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, TEXT("*.xml")/*SCHEME_FILE_EXTENSTION*/);
+    if (dialog.DoModal() == IDOK)
+    {
+        if (IsSchemeLoaded())
+            CloseScheme();
+
+        LoadScheme(dialog.GetPathName().GetBuffer());
+    }
+}
+
+void PluginFrame::LoadScheme(std::wstring const& schemeFilePath)
+{
+    ASSERT(!schemeFilePath.empty());
+
+
+}
+
+void PluginFrame::CloseScheme()
+{
+
+}
+
+bool PluginFrame::IsSchemeLoaded() const
+{
+    return false;//!!m_scheme;
 }
