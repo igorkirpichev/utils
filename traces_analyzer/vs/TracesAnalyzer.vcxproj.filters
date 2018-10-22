@@ -10,6 +10,7 @@
     <ClCompile Include="..\source\plugin_application.cpp">
       <Filter>source</Filter>
     </ClCompile>
+    <ClCompile Include="scheme.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\helpers\check.h">
@@ -39,6 +40,7 @@
     <ClInclude Include="..\resource\resource.h">
       <Filter>resource</Filter>
     </ClInclude>
+    <ClInclude Include="scheme.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="source">
