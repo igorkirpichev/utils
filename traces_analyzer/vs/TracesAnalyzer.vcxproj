@@ -28,12 +28,16 @@
     <ClInclude Include="..\source\plugin_application.h" />
     <ClInclude Include="..\source\plugin_frame.h" />
     <ClInclude Include="..\source\registry.h" />
+    <ClInclude Include="..\source\tinyxml\tinyxml.h" />
     <ClInclude Include="scheme.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\source\main.cpp" />
     <ClCompile Include="..\source\plugin_application.cpp" />
     <ClCompile Include="..\source\plugin_frame.cpp" />
+    <ClCompile Include="..\source\tinyxml\tinyxml.cpp" />
+    <ClCompile Include="..\source\tinyxml\tinyxmlerror.cpp" />
+    <ClCompile Include="..\source\tinyxml\tinyxmlparser.cpp" />
     <ClCompile Include="scheme.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -137,7 +141,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_WINDOWS;_DEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDOWS;_DEBUG;_USRDLL;TIXML_USE_STL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile />
       <PrecompiledHeaderOutputFile />
