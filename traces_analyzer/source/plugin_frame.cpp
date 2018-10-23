@@ -71,7 +71,7 @@ void PluginFrame::OnFileOpen()
     }
 }
 
-void PluginFrame::LoadScheme(std::string const& schemeFilePath)
+void PluginFrame::LoadScheme(tstring const& schemeFilePath)
 {
     ASSERT(!schemeFilePath.empty());
 

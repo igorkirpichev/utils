@@ -1,9 +1,10 @@
 #pragma once
 
+#include "helpers/string.h"
+
 #include <afxwin.h>
 #include <afxframewndex.h>
 
-#include <string>
 
 #ifdef UNICODE
     #define string wstring
@@ -14,7 +15,7 @@ struct PluginInfo
     HWND npp;
     HWND scintillaMain;
     HWND scintillaSecond;
-    std::string name;
+    tstring name;
 };
 
 class PluginFrame :
@@ -36,7 +37,7 @@ private:
     afx_msg void OnWindowPosChanged(WINDOWPOS* wndPos);
     afx_msg void OnFileOpen();
 
-    void LoadScheme(std::string const& schemeFilePath);
+    void LoadScheme(tstring const& schemeFilePath);
     void CloseScheme();
     bool IsSchemeLoaded() const;
 

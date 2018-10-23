@@ -25,6 +25,7 @@
     <ClInclude Include="..\include\npp\scintilla.h" />
     <ClInclude Include="..\resource\resource.h" />
     <ClInclude Include="..\source\helpers\check.h" />
+    <ClInclude Include="..\source\helpers\string.h" />
     <ClInclude Include="..\source\plugin_application.h" />
     <ClInclude Include="..\source\plugin_frame.h" />
     <ClInclude Include="..\source\registry.h" />
@@ -141,7 +142,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_WINDOWS;_DEBUG;_USRDLL;TIXML_USE_STL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDOWS;_WIN32_WINNT=_WIN32_WINNT_WS03;_DEBUG;_USRDLL;TIXML_USE_STL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile />
       <PrecompiledHeaderOutputFile />

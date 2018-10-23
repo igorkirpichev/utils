@@ -11,9 +11,9 @@ Scheme::~Scheme()
 {
 }
 
-bool Scheme::Load(std::wstring const& filePath)
+bool Scheme::Load(tstring const& filePath)
 {
-    //TiXmlDocument doc(filePath);
+    TiXmlDocument doc(ToString(filePath));
     return false;
 
 }

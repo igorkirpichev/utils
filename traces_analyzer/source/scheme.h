@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include "helpers/string.h"
 
 class Scheme
 {
@@ -9,7 +9,7 @@ public:
     ~Scheme();
 
 public:
-    bool Load(std::wstring const& filePath);
+    bool Load(tstring const& filePath);
 
 private:
 

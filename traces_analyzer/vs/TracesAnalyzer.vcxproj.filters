@@ -57,6 +57,9 @@
     <ClInclude Include="..\source\scheme.h">
       <Filter>source</Filter>
     </ClInclude>
+    <ClInclude Include="..\source\helpers\string.h">
+      <Filter>source\helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="source">
