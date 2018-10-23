@@ -11,32 +11,6 @@
 
 #define NPP_PLUGIN_NAME "Traces analyzer"
 
-struct PluginMenuItem :
-    FuncItem
-{
-    PluginMenuItem() :
-        FuncItem(),
-        menu(0),
-        checked(false)
-    {};
-
-    void SetCheck(bool state)
-    {
-        if (checked)
-            _init2Check = state;
-    }
-
-    void Check()
-    {
-        if (checked)
-        {
-         
-        }
-    }
-
-    HMENU menu;
-    bool  checked;
-};
 
 class PluginApplication :
     public CWinApp
@@ -45,7 +19,7 @@ public:
     PluginApplication();
 
 private:
-    typedef std::vector<PluginMenuItem> PluginMenuItems;
+    typedef std::vector<FuncItem> PluginMenuItems;
 
 public:
     virtual BOOL InitInstance();
@@ -55,10 +29,19 @@ public:
     PluginMenuItems& GetPluginMenuHandlers();
 
 private:
+    void InitPluginMenu();
     bool InitializeAnalyzer();
     void DestroyAnalyzer();
 
-    static void PluginMenuItemHandlerEnable();
+    void OpenFile();
+
+    static void OnPluginNewFile();
+    static void OnPluginOpenFile();
+    static void OnPluginCloseFile();
+    static void OnPluginOpenRecentFile0();
+    static void OnPluginOpenRecentFile1();
+    static void OnPluginOpenRecentFile2();
+    static void OnPluginOpenRecentFile3();
 
 private:
     PluginMenuItems m_pluginMenuHandlers;

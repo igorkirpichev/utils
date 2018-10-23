@@ -13,6 +13,7 @@ Scheme::~Scheme()
 
 bool Scheme::Load(std::wstring const& filePath)
 {
-    TiXmlDocument doc(filePath);
+    //TiXmlDocument doc(filePath);
+    return false;
 
 }

@@ -5,12 +5,16 @@
 
 #include <string>
 
+#ifdef UNICODE
+    #define string wstring
+#endif // UNICODE
+
 struct PluginInfo
 {
     HWND npp;
     HWND scintillaMain;
     HWND scintillaSecond;
-    std::wstring name;
+    std::string name;
 };
 
 class PluginFrame :
@@ -32,7 +36,7 @@ private:
     afx_msg void OnWindowPosChanged(WINDOWPOS* wndPos);
     afx_msg void OnFileOpen();
 
-    void LoadScheme(std::wstring const& schemeFilePath);
+    void LoadScheme(std::string const& schemeFilePath);
     void CloseScheme();
     bool IsSchemeLoaded() const;
 
