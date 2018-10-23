@@ -10,7 +10,6 @@ public:
 
 public:
     bool Load(std::wstring const& filePath);
-    bool Save(std::wstring const& filePath);
 
 private:
 

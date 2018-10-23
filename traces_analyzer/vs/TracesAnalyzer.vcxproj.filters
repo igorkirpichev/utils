@@ -10,7 +10,6 @@
     <ClCompile Include="..\source\plugin_application.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="scheme.cpp" />
     <ClCompile Include="..\source\tinyxml\tinyxml.cpp">
       <Filter>source\tinyxml</Filter>
     </ClCompile>
@@ -19,6 +18,9 @@
     </ClCompile>
     <ClCompile Include="..\source\tinyxml\tinyxmlparser.cpp">
       <Filter>source\tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\scheme.cpp">
+      <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -49,9 +51,11 @@
     <ClInclude Include="..\resource\resource.h">
       <Filter>resource</Filter>
     </ClInclude>
-    <ClInclude Include="scheme.h" />
     <ClInclude Include="..\source\tinyxml\tinyxml.h">
       <Filter>source\tinyxml</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\scheme.h">
+      <Filter>source</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
