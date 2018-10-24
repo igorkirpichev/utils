@@ -28,10 +28,11 @@ public:
     void SetNppPluginData(NppData const& nppPluginData);
     PluginMenuItems& GetPluginMenuHandlers();
 
+    void DestroyAnalyzer();
+
 private:
     void InitPluginMenu();
     bool InitializeAnalyzer();
-    void DestroyAnalyzer();
 
     void OpenFile();
 

@@ -35,6 +35,8 @@ PluginApplication::PluginApplication()
 
 BOOL PluginApplication::InitInstance()
 {
+    //_CrtSetBreakAlloc(220);
+
     CWinApp::InitInstance();
     
     SetRegistryKey(REG_KEY_NOTEPAD);
@@ -48,10 +50,8 @@ BOOL PluginApplication::InitInstance()
 
 int PluginApplication::ExitInstance()
 {
-    WriteProfileInt(REG_SECTION_FRAME, REG_ENTRY_FRAME_LAST_STATE, (m_pMainWnd) ? 1 : 0);
+    //WriteProfileInt(REG_SECTION_FRAME, REG_ENTRY_FRAME_LAST_STATE, (m_pMainWnd) ? 1 : 0);
     
-    DestroyAnalyzer();
-
     return CWinApp::ExitInstance();
 }
 
@@ -61,11 +61,6 @@ void PluginApplication::SetNppPluginData(NppData const& nppPluginData)
     m_pluginInfo.scintillaMain      = nppPluginData._scintillaMainHandle;
     m_pluginInfo.scintillaSecond    = nppPluginData._scintillaSecondHandle;
     m_pluginInfo.name               = TEXT(NPP_PLUGIN_NAME);
-
-    if (GetProfileInt(REG_SECTION_FRAME, REG_ENTRY_FRAME_LAST_STATE, 0))
-    {
-        bool const isInitialized = InitializeAnalyzer();
-    }
 }
 
 PluginApplication::PluginMenuItems& PluginApplication::GetPluginMenuHandlers() 
@@ -119,14 +114,8 @@ bool PluginApplication::InitializeAnalyzer()
 try
 {
     if (!m_pMainWnd)
-    {
-        std::unique_ptr<PluginFrame> pluginFrame(new PluginFrame(m_pluginInfo));
+        m_pMainWnd = new PluginFrame(m_pluginInfo);
 
-        pluginFrame->ShowWindow(SW_SHOW);
-        pluginFrame->UpdateWindow();
-
-        m_pMainWnd = pluginFrame.release();
-    }
     return true;
 }
 catch (std::exception const& /*ex*/)
@@ -145,15 +134,32 @@ void PluginApplication::DestroyAnalyzer()
 
 void PluginApplication::OnPluginNewFile()
 {
+    if (PluginApplication* application = static_cast<PluginApplication*>(AfxGetApp()))
+    {
+        if (application->InitializeAnalyzer())
+        {
+        }
+        else
+            AfxMessageBox(TEXT("’”…Õﬂ ¡Àﬂ!"));
+
+    }
 }
 
 void PluginApplication::OnPluginOpenFile()
 {
-
+    if (PluginApplication* application = static_cast<PluginApplication*>(AfxGetApp()))
+    {
+        if (application->InitializeAnalyzer())
+            application->m_pMainWnd->SendMessage(WM_COMMAND, ID_FILE_OPEN, 0);
+        else
+            AfxMessageBox(TEXT("’”…Õﬂ ¡Àﬂ!"));
+    }
 }
 
 void PluginApplication::OnPluginCloseFile()
 {
+    if (PluginApplication* application = static_cast<PluginApplication*>(AfxGetApp()))
+        application->DestroyAnalyzer();
 }
 
 void PluginApplication::OnPluginOpenRecentFile0()

@@ -5,11 +5,6 @@
 #include <afxwin.h>
 #include <afxframewndex.h>
 
-
-#ifdef UNICODE
-    #define string wstring
-#endif // UNICODE
-
 struct PluginInfo
 {
     HWND npp;

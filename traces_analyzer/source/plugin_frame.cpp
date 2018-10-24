@@ -31,6 +31,7 @@ PluginFrame::PluginFrame(PluginInfo const& info) :
 
 PluginFrame::~PluginFrame()
 {
+    CMFCVisualManager::DestroyInstance();
 }
 
 int PluginFrame::OnCreate(LPCREATESTRUCT createStruct)
@@ -44,6 +45,8 @@ int PluginFrame::OnCreate(LPCREATESTRUCT createStruct)
     
     SetIcon(smallIcon, false);
     SetIcon(bigIcon, true);
+
+    ShowWindow(SW_SHOW);
 
     return 0;
 }
@@ -61,7 +64,7 @@ void PluginFrame::OnWindowPosChanged(WINDOWPOS* wndPos)
 
 void PluginFrame::OnFileOpen()
 {
-    CFileDialog dialog(TRUE, TEXT("Open analysis scheme"), TEXT(".xml")/*SCHEME_FILE_EXTENSTION*/, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, TEXT("*.xml")/*SCHEME_FILE_EXTENSTION*/);
+    CFileDialog dialog(TRUE, TEXT("Open analysis scheme"), TEXT(".xml")/*SCHEME_FILE_EXTENSTION*/, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT/*, TEXT(".xml")*//*SCHEME_FILE_EXTENSTION*/);
     if (dialog.DoModal() == IDOK)
     {
         if (IsSchemeLoaded())
@@ -69,6 +72,8 @@ void PluginFrame::OnFileOpen()
 
         LoadScheme(dialog.GetPathName().GetBuffer());
     }
+    else
+        DestroyWindow();
 }
 
 void PluginFrame::LoadScheme(tstring const& schemeFilePath)
