@@ -35,7 +35,7 @@ PluginApplication::PluginApplication()
 
 BOOL PluginApplication::InitInstance()
 {
-    //_CrtSetBreakAlloc(220);
+    _CrtSetBreakAlloc(0);
 
     CWinApp::InitInstance();
 
@@ -50,8 +50,6 @@ BOOL PluginApplication::InitInstance()
 
 int PluginApplication::ExitInstance()
 {
-    //WriteProfileInt(REG_SECTION_FRAME, REG_ENTRY_FRAME_LAST_STATE, (m_pMainWnd) ? 1 : 0);
-    
     CMFCVisualManager::DestroyInstance();
 
     return CWinApp::ExitInstance();
@@ -120,11 +118,12 @@ try
 
     return true;
 }
-catch (std::exception const& /*ex*/)
+catch (std::exception const& ex)
 {
-    //std::string exceptionText("Could not initialize plugin: ");
-    //exceptionText += ex.what();
-    //::MessageBoxA(m_pluginInfo.npp, exceptionText.c_str(), NPP_PLUGIN_NAME, MB_OK);
+    std::string exceptionText("Could not initialize plugin: ");
+    exceptionText += ex.what();
+    ::MessageBoxA(m_pluginInfo.npp, exceptionText.c_str(), NPP_PLUGIN_NAME, MB_OK);
+    
     return false;
 }
 
@@ -139,11 +138,7 @@ void PluginApplication::OnPluginNewFile()
     if (PluginApplication* application = static_cast<PluginApplication*>(AfxGetApp()))
     {
         if (application->InitializeAnalyzer())
-        {
-        }
-        else
-            AfxMessageBox(TEXT("’”…Õﬂ ¡Àﬂ!"));
-
+            application->m_pMainWnd->SendMessage(WM_COMMAND, ID_FILE_NEW, 0);
     }
 }
 
@@ -153,8 +148,6 @@ void PluginApplication::OnPluginOpenFile()
     {
         if (application->InitializeAnalyzer())
             application->m_pMainWnd->SendMessage(WM_COMMAND, ID_FILE_OPEN, 0);
-        else
-            AfxMessageBox(TEXT("’”…Õﬂ ¡Àﬂ!"));
     }
 }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "scheme.h"
 #include "helpers/string.h"
 
 #include <afxwin.h>
@@ -30,6 +31,7 @@ private:
 private:
     afx_msg int OnCreate(LPCREATESTRUCT createStruct);
     afx_msg void OnWindowPosChanged(WINDOWPOS* wndPos);
+    afx_msg void OnFileNew();
     afx_msg void OnFileOpen();
 
     void LoadScheme(tstring const& schemeFilePath);
@@ -37,5 +39,6 @@ private:
     bool IsSchemeLoaded() const;
 
 private:
-    PluginInfo const m_info;
+    PluginInfo const        m_info;
+    std::unique_ptr<Scheme> m_scheme;
 };

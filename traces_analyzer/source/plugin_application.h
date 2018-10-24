@@ -36,7 +36,9 @@ private:
 
     void OpenFile();
 
+public: // очень временно
     static void OnPluginNewFile();
+private:
     static void OnPluginOpenFile();
     static void OnPluginCloseFile();
     static void OnPluginOpenRecentFile0();
