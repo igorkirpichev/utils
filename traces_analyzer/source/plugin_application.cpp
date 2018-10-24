@@ -38,7 +38,7 @@ BOOL PluginApplication::InitInstance()
     //_CrtSetBreakAlloc(220);
 
     CWinApp::InitInstance();
-    
+
     SetRegistryKey(REG_KEY_NOTEPAD);
     
     LoadStdProfileSettings();
@@ -52,6 +52,8 @@ int PluginApplication::ExitInstance()
 {
     //WriteProfileInt(REG_SECTION_FRAME, REG_ENTRY_FRAME_LAST_STATE, (m_pMainWnd) ? 1 : 0);
     
+    CMFCVisualManager::DestroyInstance();
+
     return CWinApp::ExitInstance();
 }
 

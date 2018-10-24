@@ -2,6 +2,8 @@
 #include "plugin_frame.h"
 #include "registry.h"
 
+#include "afxvisualmanagerofficexp.h"
+
 #include "helpers/check.h"
 
 #ifdef _DEBUG
@@ -31,13 +33,16 @@ PluginFrame::PluginFrame(PluginInfo const& info) :
 
 PluginFrame::~PluginFrame()
 {
-    CMFCVisualManager::DestroyInstance();
+    //CMFCVisualManager::DestroyInstance();
 }
 
 int PluginFrame::OnCreate(LPCREATESTRUCT createStruct)
 {
     if (CFrameWndEx::OnCreate(createStruct) == -1)
         return -1;
+
+    CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CMFCVisualManagerOfficeXP));
+    RedrawWindow(nullptr, nullptr, RDW_ALLCHILDREN | RDW_INVALIDATE | RDW_UPDATENOW | RDW_FRAME | RDW_ERASE);
 
     HICON const smallIcon   = reinterpret_cast<HICON>(::GetClassLongPtrW(m_info.npp, GCLP_HICONSM));
     HICON const bigIcon     = reinterpret_cast<HICON>(::GetClassLongPtrW(m_info.npp, GCLP_HICON));
