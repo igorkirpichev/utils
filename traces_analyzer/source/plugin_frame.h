@@ -30,12 +30,17 @@ private:
 
 private:
     afx_msg int OnCreate(LPCREATESTRUCT createStruct);
+    afx_msg void OnDestroy();
+    afx_msg void OnClose();
     afx_msg void OnWindowPosChanged(WINDOWPOS* wndPos);
     afx_msg void OnFileNew();
     afx_msg void OnFileOpen();
+    afx_msg void OnFileSave();
+    afx_msg void OnFileClose();
 
     void LoadScheme(tstring const& schemeFilePath);
-    void CloseScheme();
+    bool SaveScheme();
+    bool CloseScheme();
     bool IsSchemeLoaded() const;
 
 private:

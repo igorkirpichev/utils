@@ -12,9 +12,13 @@
 
 BEGIN_MESSAGE_MAP(PluginFrame, CFrameWndEx)
     ON_WM_CREATE()
+    ON_WM_CLOSE()
+    ON_WM_DESTROY()
     ON_WM_WINDOWPOSCHANGED()
-    ON_COMMAND(ID_FILE_NEW,  &PluginFrame::OnFileNew)
-    ON_COMMAND(ID_FILE_OPEN, &PluginFrame::OnFileOpen)
+    ON_COMMAND(ID_FILE_NEW,     &PluginFrame::OnFileNew)
+    ON_COMMAND(ID_FILE_OPEN,    &PluginFrame::OnFileOpen)
+    ON_COMMAND(ID_FILE_SAVE,    &PluginFrame::OnFileSave)
+    ON_COMMAND(ID_FILE_CLOSE,   &PluginFrame::OnFileClose)
 END_MESSAGE_MAP()
 
 PluginFrame::PluginFrame(PluginInfo const& info) :
@@ -57,6 +61,17 @@ int PluginFrame::OnCreate(LPCREATESTRUCT createStruct)
     return 0;
 }
 
+void PluginFrame::OnDestroy()
+{
+
+}
+
+void PluginFrame::OnClose()
+{
+
+    CFrameWndEx::OnClose();
+}
+
 void PluginFrame::OnWindowPosChanged(WINDOWPOS* wndPos)
 {
     CFrameWndEx::OnWindowPosChanged(wndPos);
@@ -70,62 +85,8 @@ void PluginFrame::OnWindowPosChanged(WINDOWPOS* wndPos)
 
 void PluginFrame::OnFileNew()
 {
-    if (m_scheme)
-    {
-        if (m_scheme->IsModified())
-        {
-            tstring const fileName          = m_scheme->GetFileName();
-            tstring const displayFileName   = m_scheme->GetDisplayFileName();
-
-            tstring messageText(TEXT("You want to save changes to the file \""));
-            messageText += displayFileName.empty() ? SCHEME_DEFAULT_FILE_NAME : displayFileName;
-            messageText += TEXT("\"?");
-
-            switch (MessageBox(messageText.c_str(), m_info.name.c_str(), MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1))
-            {
-                case IDYES:
-                {
-                    if (fileName.empty())
-                    {
-                        CFileDialog dialog(
-                            FALSE,
-                            SCHEME_FILE_EXTENSTION,
-                            SCHEME_DEFAULT_FILE_NAME,
-                            OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-                            SCHEME_DEFAULT_FILE_NAME_FILTER);
-
-                        if (dialog.DoModal() == IDOK)
-                        {
-                            m_scheme->Save(dialog.GetPathName().GetBuffer());
-                        }
-                        else
-                            return;
-                    }
-                    else
-                    {
-                        m_scheme->Save();
-                    }
-
-                    break;
-                }
-
-                case IDNO:
-                {
-                    break;
-                }
-
-                case IDCANCEL:
-                default:
-                {
-                    return;
-                }
-            }
-        }
-
-        m_scheme.reset(nullptr);
-    }
-    
-    m_scheme.reset(new Scheme());
+    if (CloseScheme())
+        m_scheme.reset(new Scheme());
 }
 
 void PluginFrame::OnFileOpen()
@@ -142,6 +103,17 @@ void PluginFrame::OnFileOpen()
         DestroyWindow();
 }
 
+void PluginFrame::OnFileSave()
+{
+    SaveScheme();
+}
+
+void PluginFrame::OnFileClose()
+{
+    if (CloseScheme())
+        DestroyWindow();
+}
+
 void PluginFrame::LoadScheme(tstring const& schemeFilePath)
 {
     ASSERT(!schemeFilePath.empty());
@@ -149,9 +121,80 @@ void PluginFrame::LoadScheme(tstring const& schemeFilePath)
 
 }
 
-void PluginFrame::CloseScheme()
+bool PluginFrame::SaveScheme()
 {
+    if (m_scheme)
+    {
+        tstring const fileName = m_scheme->GetFileName();
 
+        bool result = false;
+        if (fileName.empty())
+        {
+            CFileDialog dialog(
+                FALSE,
+                SCHEME_FILE_EXTENSTION,
+                SCHEME_DEFAULT_FILE_NAME,
+                OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+                SCHEME_DEFAULT_FILE_NAME_FILTER);
+
+            if (dialog.DoModal() == IDOK)
+                result = m_scheme->Save(dialog.GetPathName().GetBuffer());
+            else
+                return false;
+        }
+        else
+            result = m_scheme->Save();
+
+        if (!result)
+            MessageBox(TEXT("Failed to save analyzes scheme"), m_info.name.c_str(), MB_OK | MB_ICONERROR);
+
+        return result;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool PluginFrame::CloseScheme()
+{
+    if (m_scheme)
+    {
+        if (m_scheme->IsModified())
+        {
+            tstring const displayFileName = m_scheme->GetDisplayFileName();
+
+            tstring messageText(TEXT("You want to save changes to the file \""));
+            messageText += displayFileName.empty() ? SCHEME_DEFAULT_FILE_NAME : displayFileName;
+            messageText += TEXT("\"?");
+
+            switch (MessageBox(messageText.c_str(), m_info.name.c_str(), MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1))
+            {
+                case IDYES:
+                {
+                    if (!SaveScheme())
+                        return false;
+
+                    break;
+                }
+
+                case IDNO:
+                {
+                    break;
+                }
+
+                case IDCANCEL:
+                default:
+                {
+                    return false;
+                }
+            }
+        }
+
+        m_scheme.reset(nullptr);
+    }
+    
+    return true;
 }
 
 bool PluginFrame::IsSchemeLoaded() const

@@ -5,6 +5,7 @@
 #include "afxadv.h"
 
 #include <memory>
+#include <vector>
 
 #ifdef _DEBUG
     #define new DEBUG_NEW
@@ -33,6 +34,8 @@ PluginApplication::PluginApplication()
 {
 }
 
+
+
 BOOL PluginApplication::InitInstance()
 {
     _CrtSetBreakAlloc(0);
@@ -43,7 +46,7 @@ BOOL PluginApplication::InitInstance()
     
     LoadStdProfileSettings();
 
-    InitPluginMenu();
+    InitializePluginMenu();
 
     return TRUE;
 }
@@ -68,12 +71,14 @@ PluginApplication::PluginMenuItems& PluginApplication::GetPluginMenuHandlers()
     return m_pluginMenuHandlers;
 }
 
-void PluginApplication::InitPluginMenu()
+void PluginApplication::InitializePluginMenu()
 {
     m_pluginMenuHandlers.push_back(
         MakePluginMenuItemHandler(TEXT("New scheme"), PluginApplication::OnPluginNewFile));
     m_pluginMenuHandlers.push_back(
         MakePluginMenuItemHandler(TEXT("Open scheme"), PluginApplication::OnPluginOpenFile));
+    m_pluginMenuHandlers.push_back(
+        MakePluginMenuItemHandler(TEXT("Save scheme"), PluginApplication::OnPluginSaveFile));
             
     if (m_pRecentFileList && m_pRecentFileList->m_nSize && !(*m_pRecentFileList)[0].IsEmpty())
     {
@@ -113,10 +118,10 @@ void PluginApplication::InitPluginMenu()
 bool PluginApplication::InitializeAnalyzer()
 try
 {
-    if (!m_pMainWnd)
+    if (!IsAnalyzerInitialized())
         m_pMainWnd = new PluginFrame(m_pluginInfo);
 
-    return true;
+    return IsAnalyzerInitialized();
 }
 catch (std::exception const& ex)
 {
@@ -129,9 +134,15 @@ catch (std::exception const& ex)
 
 void PluginApplication::DestroyAnalyzer()
 {
-    if (m_pMainWnd)
+    if (IsAnalyzerInitialized())
         m_pMainWnd->DestroyWindow();
 }
+
+bool PluginApplication::IsAnalyzerInitialized() const
+{
+    return m_pMainWnd;
+}
+
 
 void PluginApplication::OnPluginNewFile()
 {
@@ -148,6 +159,15 @@ void PluginApplication::OnPluginOpenFile()
     {
         if (application->InitializeAnalyzer())
             application->m_pMainWnd->SendMessage(WM_COMMAND, ID_FILE_OPEN, 0);
+    }
+}
+
+void PluginApplication::OnPluginSaveFile()
+{
+    if (PluginApplication* application = static_cast<PluginApplication*>(AfxGetApp()))
+    {
+        if (application->IsAnalyzerInitialized())
+            application->m_pMainWnd->SendMessage(WM_COMMAND, ID_FILE_SAVE, 0);
     }
 }
 

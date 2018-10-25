@@ -31,8 +31,9 @@ public:
     void DestroyAnalyzer();
 
 private:
-    void InitPluginMenu();
+    void InitializePluginMenu();
     bool InitializeAnalyzer();
+    bool IsAnalyzerInitialized() const;
 
     void OpenFile();
 
@@ -40,6 +41,7 @@ public: // очень временно
     static void OnPluginNewFile();
 private:
     static void OnPluginOpenFile();
+    static void OnPluginSaveFile();
     static void OnPluginCloseFile();
     static void OnPluginOpenRecentFile0();
     static void OnPluginOpenRecentFile1();
