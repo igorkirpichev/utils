@@ -135,6 +135,9 @@ catch (std::exception const& ex)
 void PluginApplication::DestroyAnalyzer()
 {
     if (IsAnalyzerInitialized())
+        m_pMainWnd->SendMessage(WM_CLOSE, 0, 0);
+
+    if (IsAnalyzerInitialized())
         m_pMainWnd->DestroyWindow();
 }
 
@@ -150,6 +153,9 @@ void PluginApplication::OnPluginNewFile()
     {
         if (application->InitializeAnalyzer())
             application->m_pMainWnd->SendMessage(WM_COMMAND, ID_FILE_NEW, 0);
+     
+        if (application->IsAnalyzerInitialized())
+            application->m_pMainWnd->ShowWindow(SW_SHOW);
     }
 }
 
@@ -159,6 +165,9 @@ void PluginApplication::OnPluginOpenFile()
     {
         if (application->InitializeAnalyzer())
             application->m_pMainWnd->SendMessage(WM_COMMAND, ID_FILE_OPEN, 0);
+
+        if (application->IsAnalyzerInitialized())
+            application->m_pMainWnd->ShowWindow(SW_SHOW);
     }
 }
 

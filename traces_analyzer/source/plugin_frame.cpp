@@ -13,12 +13,10 @@
 BEGIN_MESSAGE_MAP(PluginFrame, CFrameWndEx)
     ON_WM_CREATE()
     ON_WM_CLOSE()
-    ON_WM_DESTROY()
     ON_WM_WINDOWPOSCHANGED()
     ON_COMMAND(ID_FILE_NEW,     &PluginFrame::OnFileNew)
     ON_COMMAND(ID_FILE_OPEN,    &PluginFrame::OnFileOpen)
     ON_COMMAND(ID_FILE_SAVE,    &PluginFrame::OnFileSave)
-    ON_COMMAND(ID_FILE_CLOSE,   &PluginFrame::OnFileClose)
 END_MESSAGE_MAP()
 
 PluginFrame::PluginFrame(PluginInfo const& info) :
@@ -56,20 +54,16 @@ int PluginFrame::OnCreate(LPCREATESTRUCT createStruct)
     SetIcon(smallIcon, false);
     SetIcon(bigIcon, true);
 
-    ShowWindow(SW_SHOW);
-
     return 0;
-}
-
-void PluginFrame::OnDestroy()
-{
-
 }
 
 void PluginFrame::OnClose()
 {
-
-    CFrameWndEx::OnClose();
+    if (SaveModifiedScheme())
+    {
+        CloseScheme();
+        CFrameWndEx::OnClose();
+    }
 }
 
 void PluginFrame::OnWindowPosChanged(WINDOWPOS* wndPos)
@@ -85,21 +79,32 @@ void PluginFrame::OnWindowPosChanged(WINDOWPOS* wndPos)
 
 void PluginFrame::OnFileNew()
 {
-    if (CloseScheme())
+    if (SaveModifiedScheme())
         m_scheme.reset(new Scheme());
 }
 
 void PluginFrame::OnFileOpen()
 {
-    CFileDialog dialog(TRUE, TEXT("Open analysis scheme"), TEXT(".xml")/*SCHEME_FILE_EXTENSTION*/, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT/*, TEXT(".xml")*//*SCHEME_FILE_EXTENSTION*/);
-    if (dialog.DoModal() == IDOK)
+    if (SaveModifiedScheme())
     {
-        if (IsSchemeLoaded())
-            CloseScheme();
+        CFileDialog dialog(
+            TRUE,
+            SCHEME_FILE_EXTENSTION,
+            NULL,
+            OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+            SCHEME_DEFAULT_FILE_NAME_FILTER);
 
-        LoadScheme(dialog.GetPathName().GetBuffer());
+        if (dialog.DoModal() == IDOK)
+        {
+            std::unique_ptr<Scheme> newScheme(new Scheme());
+            if (newScheme->Load(dialog.GetPathName().GetBuffer()))
+                m_scheme = std::move(newScheme);
+            else
+                MessageBox(TEXT("Failed to open analyzes scheme"), m_info.name.c_str(), MB_OK | MB_ICONERROR);
+        }
     }
-    else
+
+    if (!m_scheme)
         DestroyWindow();
 }
 
@@ -108,17 +113,44 @@ void PluginFrame::OnFileSave()
     SaveScheme();
 }
 
-void PluginFrame::OnFileClose()
+
+bool PluginFrame::SaveModifiedScheme()
 {
-    if (CloseScheme())
-        DestroyWindow();
-}
+    if (m_scheme)
+    {
+        if (m_scheme->IsModified())
+        {
+            tstring const displayFileName = m_scheme->GetDisplayFileName();
 
-void PluginFrame::LoadScheme(tstring const& schemeFilePath)
-{
-    ASSERT(!schemeFilePath.empty());
+            tstring messageText(TEXT("You want to save changes to the file \""));
+            messageText += displayFileName.empty() ? SCHEME_DEFAULT_FILE_NAME : displayFileName;
+            messageText += TEXT("\"?");
 
+            switch (MessageBox(messageText.c_str(), m_info.name.c_str(), MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1))
+            {
+                case IDYES:
+                {
+                    if (!SaveScheme())
+                        return false;
 
+                    break;
+                }
+
+                case IDNO:
+                {
+                    break;
+                }
+
+                case IDCANCEL:
+                default:
+                {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
 }
 
 bool PluginFrame::SaveScheme()
@@ -154,50 +186,4 @@ bool PluginFrame::SaveScheme()
     {
         return false;
     }
-}
-
-bool PluginFrame::CloseScheme()
-{
-    if (m_scheme)
-    {
-        if (m_scheme->IsModified())
-        {
-            tstring const displayFileName = m_scheme->GetDisplayFileName();
-
-            tstring messageText(TEXT("You want to save changes to the file \""));
-            messageText += displayFileName.empty() ? SCHEME_DEFAULT_FILE_NAME : displayFileName;
-            messageText += TEXT("\"?");
-
-            switch (MessageBox(messageText.c_str(), m_info.name.c_str(), MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1))
-            {
-                case IDYES:
-                {
-                    if (!SaveScheme())
-                        return false;
-
-                    break;
-                }
-
-                case IDNO:
-                {
-                    break;
-                }
-
-                case IDCANCEL:
-                default:
-                {
-                    return false;
-                }
-            }
-        }
-
-        m_scheme.reset(nullptr);
-    }
-    
-    return true;
-}
-
-bool PluginFrame::IsSchemeLoaded() const
-{
-    return false;//!!m_scheme;
 }

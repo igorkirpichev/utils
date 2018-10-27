@@ -22,6 +22,12 @@ Scheme::~Scheme()
 //
 //}
 
+bool Scheme::Load(tstring const& filePath)
+{
+    return false;
+}
+
+
 bool Scheme::Save(tstring const& filePath)
 {
     return false;

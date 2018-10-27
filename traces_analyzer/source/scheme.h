@@ -13,8 +13,9 @@ public:
     ~Scheme();
 
 public:
-    //bool Load(tstring const& filePath);
+    bool Load(tstring const& filePath);
     bool Save(tstring const& filePath = tstring());
+    
     bool IsModified() const;
     tstring GetFileName() const;
     tstring GetDisplayFileName() const;
