@@ -31,6 +31,7 @@
     <ClInclude Include="..\source\registry.h" />
     <ClInclude Include="..\source\scheme.h" />
     <ClInclude Include="..\source\tinyxml\tinyxml.h" />
+    <ClInclude Include="..\source\traces_parser_provider.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\source\main.cpp" />
@@ -40,6 +41,7 @@
     <ClCompile Include="..\source\tinyxml\tinyxml.cpp" />
     <ClCompile Include="..\source\tinyxml\tinyxmlerror.cpp" />
     <ClCompile Include="..\source\tinyxml\tinyxmlparser.cpp" />
+    <ClCompile Include="..\source\traces_parser_provider.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\resource\TracesAnalyzer.rc" />

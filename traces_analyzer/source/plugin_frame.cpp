@@ -61,7 +61,7 @@ void PluginFrame::OnClose()
 {
     if (SaveModifiedScheme())
     {
-        CloseScheme();
+        m_scheme.reset(nullptr);
         CFrameWndEx::OnClose();
     }
 }
@@ -93,7 +93,7 @@ void PluginFrame::OnFileOpen()
             NULL,
             OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
             SCHEME_DEFAULT_FILE_NAME_FILTER);
-
+        
         if (dialog.DoModal() == IDOK)
         {
             std::unique_ptr<Scheme> newScheme(new Scheme());
