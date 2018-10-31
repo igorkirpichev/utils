@@ -1,6 +1,7 @@
 #include "plugin_application.h"
 #include "registry.h"
 #include "helpers/check.h"
+#include "traces_parser_provider.h"
 
 #include "afxadv.h"
 
@@ -64,6 +65,12 @@ void PluginApplication::SetNppPluginData(NppData const& nppPluginData)
     m_pluginInfo.scintillaMain      = nppPluginData._scintillaMainHandle;
     m_pluginInfo.scintillaSecond    = nppPluginData._scintillaSecondHandle;
     m_pluginInfo.name               = TEXT(NPP_PLUGIN_NAME);
+
+    int lParam = 0;
+    wchar_t wParam[255] = { 0 };
+
+    LRESULT result = ::SendMessage(m_pluginInfo.npp, NPPM_GETPLUGINSCONFIGDIR, 255, (LPARAM)&wParam);
+    TracesParserProvider::GetInstance().Create(TEXT("D:"));
 }
 
 PluginApplication::PluginMenuItems& PluginApplication::GetPluginMenuHandlers() 
