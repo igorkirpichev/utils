@@ -51,7 +51,8 @@ void TracesParserProvider::Create(tstring const& tracesTemplatesPath)
 
 void TracesParserProvider::Save()
 {
-
+    TiXmlDocument document;
+    bool res = document.SaveFile(ToString(m_tracesTemplatesFilePath));
 }
 
 size_t TracesParserProvider::GetCountParsers() const

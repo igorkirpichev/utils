@@ -66,11 +66,10 @@ void PluginApplication::SetNppPluginData(NppData const& nppPluginData)
     m_pluginInfo.scintillaSecond    = nppPluginData._scintillaSecondHandle;
     m_pluginInfo.name               = TEXT(NPP_PLUGIN_NAME);
 
-    int lParam = 0;
-    wchar_t wParam[255] = { 0 };
+    TCHAR pluginConfigDir[MAX_PATH] = { 0 };
+    LRESULT result = ::SendMessage(m_pluginInfo.npp, NPPM_GETPLUGINSCONFIGDIR, MAX_PATH, (LPARAM)&pluginConfigDir);
 
-    LRESULT result = ::SendMessage(m_pluginInfo.npp, NPPM_GETPLUGINSCONFIGDIR, 255, (LPARAM)&wParam);
-    TracesParserProvider::GetInstance().Create(TEXT("D:"));
+    TracesParserProvider::GetInstance().Create(tstring(pluginConfigDir));
 }
 
 PluginApplication::PluginMenuItems& PluginApplication::GetPluginMenuHandlers() 
