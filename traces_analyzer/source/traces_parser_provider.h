@@ -7,12 +7,16 @@
 class TracesParser
 {
 public:
-    TracesParser(tstring const& traceTemplate);
+    TracesParser(tstring const& traceTemplateName, tstring const& traceTemplate);
 
 public:
     void Parse(tstring const& string);
 
+	tstring GetName() const;
+	tstring GetTemplate() const;
+
 private:
+	tstring const m_traceTemplateName;
     tstring const m_traceTemplate;
 };
 
@@ -31,7 +35,7 @@ public:
 
 private:
     bool Load();
-    void Save();
+    void Save() const;
     
 private:
     tstring                     m_tracesTemplatesFilePath;

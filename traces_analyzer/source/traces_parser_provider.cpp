@@ -6,17 +6,36 @@
 
 #define TRACES_TEMPLATES_FILE_NAME  TEXT("traces_templates.xml")
 #define DEFAULT_TRACE_TEMPLATE      TEXT("DEFAULT_TRACE_TEMPLATE")
+#define DEFAULT_TRACE_TEMPLATE_NAME TEXT("DEFAULT_TRACE_TEMPLATE_NAME")
+
+// XML tags
+#define XML_TAG_ROOT			"traces_templates_root"
+#define XML_TAG_TEMPLATE		"template"
+
+// XML attributes
+#define XML_ATTR_TEMPLATE_NAME	"name"
 
 
-TracesParser::TracesParser(tstring const& traceTemplate) :
+TracesParser::TracesParser(tstring const& traceTemplateName, tstring const& traceTemplate) :
+	m_traceTemplateName(traceTemplateName),
     m_traceTemplate(traceTemplate)
 {
-    ASSERT(!m_traceTemplate.empty());
+    ASSERT(!m_traceTemplateName.empty() && !m_traceTemplate.empty());
 }
 
 void TracesParser::Parse(tstring const& string)
 {
 
+}
+
+tstring TracesParser::GetName() const
+{
+	return m_traceTemplateName;
+}
+
+tstring TracesParser::GetTemplate() const
+{
+	return m_traceTemplate;
 }
 
 TracesParserProvider::TracesParserProvider()
@@ -43,16 +62,31 @@ void TracesParserProvider::Create(tstring const& tracesTemplatesPath)
     
     if (!Load())
     {
-        m_parsers.push_back(TracesParser(DEFAULT_TRACE_TEMPLATE));
+        m_parsers.push_back(TracesParser(DEFAULT_TRACE_TEMPLATE_NAME, DEFAULT_TRACE_TEMPLATE));
 
         Save();
     }
 }
 
-void TracesParserProvider::Save()
+void TracesParserProvider::Save() const
 {
     TiXmlDocument document;
-    bool res = document.SaveFile(ToString(m_tracesTemplatesFilePath));
+
+	document.LinkEndChild(new TiXmlDeclaration("1.0", "utf-8", "yes"));
+	TiXmlNode* rootNode = document.LinkEndChild(new TiXmlElement(XML_TAG_ROOT));
+
+	ASSERT(rootNode);
+
+	for (TracesParser const& parser : m_parsers)
+	{
+		TiXmlElement* templateNode = rootNode->LinkEndChild(new TiXmlElement(XML_TAG_TEMPLATE))->ToElement();
+		ASSERT(templateNode);
+
+		templateNode->SetAttribute(XML_ATTR_TEMPLATE_NAME, ToString(parser.GetName()));
+		templateNode->LinkEndChild(new TiXmlText(ToString(parser.GetTemplate())));
+	}
+
+    document.SaveFile(ToString(m_tracesTemplatesFilePath));
 }
 
 size_t TracesParserProvider::GetCountParsers() const
@@ -67,6 +101,25 @@ bool TracesParserProvider::Load()
     TiXmlDocument document;
     if (document.LoadFile(ToString(m_tracesTemplatesFilePath)))
     {
+		TiXmlElement* rootNode = document.RootElement();
+		if (!rootNode)
+			return false;
+
+		for (TiXmlElement* templateNode = rootNode->FirstChildElement(XML_TAG_TEMPLATE);
+			templateNode; templateNode = templateNode->NextSiblingElement(XML_TAG_TEMPLATE))
+		{
+			const char* traceTemplateName   = templateNode->Attribute(XML_ATTR_TEMPLATE_NAME);
+			const char* traceTemplate       = templateNode->GetText();
+
+			if (traceTemplateName && traceTemplate)
+			{
+                TracesParser parser(ToTString(traceTemplateName), ToTString(traceTemplate));
+                m_parsers.push_back(parser);
+			}
+		}
+
+		if (m_parsers.empty())
+			return false;
 
         return true;
     }
