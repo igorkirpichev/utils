@@ -5,8 +5,8 @@
 #include "afxwin.h"
 
 #define TRACES_TEMPLATES_FILE_NAME  TEXT("traces_templates.xml")
-#define DEFAULT_TRACE_TEMPLATE      TEXT("DEFAULT_TRACE_TEMPLATE")
-#define DEFAULT_TRACE_TEMPLATE_NAME TEXT("DEFAULT_TRACE_TEMPLATE_NAME")
+#define DEFAULT_TRACE_TEMPLATE      TEXT("^([\\d]{2,2}):([\\d]{2,2}):([\\d]{2,2}).([\\d]{3,3}).*")
+#define DEFAULT_TRACE_TEMPLATE_NAME TEXT("KAV_KIS")
 
 // XML tags
 #define XML_TAG_ROOT			"traces_templates_root"
@@ -17,25 +17,41 @@
 
 
 TracesParser::TracesParser(tstring const& traceTemplateName, tstring const& traceTemplate) :
-	m_traceTemplateName(traceTemplateName),
-    m_traceTemplate(traceTemplate)
+	m_templateName(traceTemplateName),
+    m_fullTemplate(traceTemplate),
+    m_fullRegex(traceTemplate)
 {
-    ASSERT(!m_traceTemplateName.empty() && !m_traceTemplate.empty());
+    ASSERT(!m_templateName.empty() && !m_fullTemplate.empty());
 }
 
-void TracesParser::Parse(tstring const& string)
+bool TracesParser::Parse(tstring const& trace)
 {
+    if (!trace.empty())
+        return false;
 
+    std::match_results<tstring::const_iterator> result;
+    if (std::regex_match(trace.begin(), trace.end(), result, m_fullRegex))
+    {
+        for (auto const& i : result)
+        {
+            tstring const sub = i.str();
+
+        }
+
+        return true;
+    }
+    else
+        return false;
 }
 
 tstring TracesParser::GetName() const
 {
-	return m_traceTemplateName;
+	return m_templateName;
 }
 
 tstring TracesParser::GetTemplate() const
 {
-	return m_traceTemplate;
+	return m_fullTemplate;
 }
 
 TracesParserProvider::TracesParserProvider()
@@ -53,6 +69,7 @@ TracesParserProvider& TracesParserProvider::GetInstance()
 }
 
 void TracesParserProvider::Create(tstring const& tracesTemplatesPath)
+try
 {
     ASSERT(!tracesTemplatesPath.empty());
 
@@ -66,6 +83,9 @@ void TracesParserProvider::Create(tstring const& tracesTemplatesPath)
 
         Save();
     }
+}
+catch (...)
+{
 }
 
 void TracesParserProvider::Save() const
@@ -94,6 +114,11 @@ size_t TracesParserProvider::GetCountParsers() const
     return m_parsers.size();
 }
 
+TracesParser& TracesParserProvider::GetParser(size_t i)
+{
+    return m_parsers[i];
+}
+
 bool TracesParserProvider::Load()
 {
     m_parsers.clear();
@@ -113,8 +138,14 @@ bool TracesParserProvider::Load()
 
 			if (traceTemplateName && traceTemplate)
 			{
-                TracesParser parser(ToTString(traceTemplateName), ToTString(traceTemplate));
-                m_parsers.push_back(parser);
+                try
+                {
+                    TracesParser parser(ToTString(traceTemplateName), ToTString(traceTemplate));
+                    m_parsers.push_back(parser);
+                }
+                catch (...)
+                {
+                }
 			}
 		}
 
