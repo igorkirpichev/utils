@@ -5,7 +5,6 @@
 #include <vector>
 #include <regex>
 
-
 class TracesParser
 {
 public:
@@ -26,21 +25,14 @@ private:
 
 class TracesParserProvider
 {
-private:
-    TracesParserProvider();
-    ~TracesParserProvider();
-
 public:
-    static TracesParserProvider& GetInstance();
-
-public:
-    void Create(tstring const& tracesTemplatesPath);
-    size_t GetCountParsers() const;
-    TracesParser& GetParser(size_t i);
+    bool                        Create(tstring const& tracesTemplatesPath);
+    size_t                      GetCountParsers() const;
+    bool                        GetParser(size_t i, TracesParser& parser) const;
 
 private:
     bool Load();
-    void Save() const;
+    bool Save() const;
     
 private:
     tstring                     m_tracesTemplatesFilePath;

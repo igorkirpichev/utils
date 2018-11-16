@@ -2,6 +2,7 @@
 
 #include "scheme.h"
 #include "helpers/string.h"
+#include "traces_parser_provider.h"
 
 #include <afxwin.h>
 #include <afxframewndex.h>
@@ -41,5 +42,6 @@ private:
 
 private:
     PluginInfo const        m_info;
+    TracesParserProvider    m_tracesParserProvider;
     std::unique_ptr<Scheme> m_scheme;
 };

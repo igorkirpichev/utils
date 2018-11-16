@@ -2,9 +2,12 @@
 #include "plugin_frame.h"
 #include "registry.h"
 
+#include "helpers/check.h"
+
+#include "npp/notepad_plus_msgs.h"
+
 #include "afxvisualmanagerofficexp.h"
 
-#include "helpers/check.h"
 
 #ifdef _DEBUG
     #define new DEBUG_NEW
@@ -32,6 +35,25 @@ PluginFrame::PluginFrame(PluginInfo const& info) :
     
     WIN_CHECK(Create(NULL, m_info.name.c_str(), WS_OVERLAPPEDWINDOW | FWS_ADDTOTITLE, windowRect, NULL,
         MAKEINTRESOURCE(IDR_MAINFRAME)));
+
+    // Путь потом будем брать из настроек
+    TCHAR pluginConfigDir[MAX_PATH] = { 0 };
+    LRESULT const result = ::SendMessage(m_info.npp, NPPM_GETPLUGINSCONFIGDIR, MAX_PATH, (LPARAM)&pluginConfigDir);
+
+    if (!m_tracesParserProvider.Create(tstring(pluginConfigDir)))
+        MessageBox(TEXT("Failed to load traces templates"), m_info.name.c_str(), MB_OK | MB_ICONERROR);
+
+    // Чисто парсер потестить
+    {
+        tstring testTrace(TEXT("05:45:10.579	0x3c4	INF	esm	Added service name='antimalware.sandbox.client.EngineManager', serviceKey=0xb6137d49, clsid=0xb6137d49, category=null; implements iface=0x6a9831dc"));
+        //tstring testTrace(TEXT("05:45 : 12.063	0x3c4	INF	esm	Returning new service name = 'klif.volume_monitor.VolumeMonitor', serviceKey = 0x3d8161fa, hostId = 0x00000002, accessPointId = 0x00000000, object = 0x04309978. Interface requested iface = 0xeab3b035, serviceKey = 0x00000000, hostId = 0x00000000, accessPointId = 0x00000000, requestor = { unknown }"));
+
+        if (m_tracesParserProvider.GetCountParsers())
+        {
+            //TracesParser& parser = m_tracesParserProvider.GetParser(0);
+            //parser.Parse(testTrace);
+        }
+    }
 }
 
 PluginFrame::~PluginFrame()

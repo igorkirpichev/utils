@@ -4,6 +4,12 @@
 
 #include "afxwin.h"
 
+#include <filesystem>
+
+#if !_HAS_CXX17
+    #define filesystem experimental::filesystem
+#endif
+
 #define TRACES_TEMPLATES_FILE_NAME  TEXT("traces_templates.xml")
 #define DEFAULT_TRACE_TEMPLATE      TEXT("^([\\d]{2,2}):([\\d]{2,2}):([\\d]{2,2}).([\\d]{3,3}).*")
 #define DEFAULT_TRACE_TEMPLATE_NAME TEXT("KAV_KIS")
@@ -54,21 +60,7 @@ tstring TracesParser::GetTemplate() const
 	return m_fullTemplate;
 }
 
-TracesParserProvider::TracesParserProvider()
-{
-}
-
-TracesParserProvider::~TracesParserProvider()
-{
-}
-
-TracesParserProvider& TracesParserProvider::GetInstance()
-{
-    static TracesParserProvider tracesParserProvider;
-    return tracesParserProvider;
-}
-
-void TracesParserProvider::Create(tstring const& tracesTemplatesPath)
+bool TracesParserProvider::Create(tstring const& tracesTemplatesPath)
 try
 {
     ASSERT(!tracesTemplatesPath.empty());
@@ -77,19 +69,35 @@ try
     m_tracesTemplatesFilePath += TEXT("\\");
     m_tracesTemplatesFilePath += TRACES_TEMPLATES_FILE_NAME;
     
-    if (!Load())
+    if (std::filesystem::exists(m_tracesTemplatesFilePath))
     {
-        m_parsers.push_back(TracesParser(DEFAULT_TRACE_TEMPLATE_NAME, DEFAULT_TRACE_TEMPLATE));
+        if (Load())
+        {
+            return false;
+        }
+        else
+        {
+            tstring const backupTracesTemplatesFilePath = m_tracesTemplatesFilePath + TEXT(".backup");
+            if (!std::filesystem::remove(backupTracesTemplatesFilePath))
+                return false;
 
-        Save();
+            std::filesystem::rename(m_tracesTemplatesFilePath, backupTracesTemplatesFilePath);
+        }
     }
-}
+    
+    m_parsers.push_back(TracesParser(DEFAULT_TRACE_TEMPLATE_NAME, DEFAULT_TRACE_TEMPLATE));
+    return Save();
+}   
 catch (...)
 {
+    return false;
 }
 
-void TracesParserProvider::Save() const
+bool TracesParserProvider::Save() const
 {
+    if (m_parsers.empty())
+        return false;
+
     TiXmlDocument document;
 
 	document.LinkEndChild(new TiXmlDeclaration("1.0", "utf-8", "yes"));
@@ -106,7 +114,7 @@ void TracesParserProvider::Save() const
 		templateNode->LinkEndChild(new TiXmlText(ToString(parser.GetTemplate())));
 	}
 
-    document.SaveFile(ToString(m_tracesTemplatesFilePath));
+    return document.SaveFile(ToString(m_tracesTemplatesFilePath));
 }
 
 size_t TracesParserProvider::GetCountParsers() const
@@ -114,9 +122,13 @@ size_t TracesParserProvider::GetCountParsers() const
     return m_parsers.size();
 }
 
-TracesParser& TracesParserProvider::GetParser(size_t i)
+bool TracesParserProvider::GetParser(size_t i, TracesParser& parser) const
 {
-    return m_parsers[i];
+    if (i >= m_parsers.size())
+        return false;
+    
+    
+    return true;
 }
 
 bool TracesParserProvider::Load()
