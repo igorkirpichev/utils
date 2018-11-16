@@ -7,8 +7,11 @@
 #include <filesystem>
 
 #if !_HAS_CXX17
-    #define filesystem experimental::filesystem
-#endif
+namespace std
+{
+    namespace filesystem = std::experimental::filesystem;
+} // namespace std
+#endif // !_HAS_CXX17
 
 #define TRACES_TEMPLATES_FILE_NAME  TEXT("traces_templates.xml")
 #define DEFAULT_TRACE_TEMPLATE      TEXT("^([\\d]{2,2}):([\\d]{2,2}):([\\d]{2,2}).([\\d]{3,3}).*")
@@ -32,7 +35,7 @@ TracesParser::TracesParser(tstring const& traceTemplateName, tstring const& trac
 
 bool TracesParser::Parse(tstring const& trace)
 {
-    if (!trace.empty())
+    if (trace.empty())
         return false;
 
     std::match_results<tstring::const_iterator> result;
@@ -73,14 +76,12 @@ try
     {
         if (Load())
         {
-            return false;
+            return true;
         }
         else
         {
             tstring const backupTracesTemplatesFilePath = m_tracesTemplatesFilePath + TEXT(".backup");
-            if (!std::filesystem::remove(backupTracesTemplatesFilePath))
-                return false;
-
+            std::filesystem::remove(backupTracesTemplatesFilePath);
             std::filesystem::rename(m_tracesTemplatesFilePath, backupTracesTemplatesFilePath);
         }
     }
@@ -122,13 +123,9 @@ size_t TracesParserProvider::GetCountParsers() const
     return m_parsers.size();
 }
 
-bool TracesParserProvider::GetParser(size_t i, TracesParser& parser) const
+TracesParser TracesParserProvider::GetParser(size_t i) const
 {
-    if (i >= m_parsers.size())
-        return false;
-    
-    
-    return true;
+    return m_parsers[i];
 }
 
 bool TracesParserProvider::Load()

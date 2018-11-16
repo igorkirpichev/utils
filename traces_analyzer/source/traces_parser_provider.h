@@ -28,7 +28,7 @@ class TracesParserProvider
 public:
     bool                        Create(tstring const& tracesTemplatesPath);
     size_t                      GetCountParsers() const;
-    bool                        GetParser(size_t i, TracesParser& parser) const;
+    TracesParser                GetParser(size_t i) const;
 
 private:
     bool Load();

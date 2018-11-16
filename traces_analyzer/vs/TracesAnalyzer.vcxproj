@@ -159,7 +159,7 @@
       <ImportLibrary>build\x64\debug\$(TargetName).lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
-      <Command>copy build\x64\debug\$(TargetName)$(TargetExt) "C:\Program Files\Notepad++\plugins\$(TargetName)$(TargetExt)"</Command>
+      <Command>copy build\x64\debug\$(TargetName)$(TargetExt) "C:\Users\Игорь\AppData\Local\Notepad++\plugins\$(TargetName)\$(TargetName)$(TargetExt)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
