@@ -1,7 +1,5 @@
 #include "traces_parser_provider.h"
 
-#include "tinyxml/tinyxml.h"
-
 #include "afxwin.h"
 
 #include <filesystem>
@@ -18,28 +16,36 @@ namespace std
 #define DEFAULT_TRACE_TEMPLATE_NAME TEXT("KAV_KIS")
 
 // XML tags
-#define XML_TAG_ROOT			"traces_templates_root"
-#define XML_TAG_TEMPLATE		"template"
+#define XML_TAG_ROOT			    "traces_templates_root"
+#define XML_TAG_TEMPLATE		    "template"
+#define XML_TAG_TEMPLATE_FULL_MODE  "full_mode"
+#define XML_TAG_TEMPLATE_FAST_MODE  "fast_mode"
 
 // XML attributes
-#define XML_ATTR_TEMPLATE_NAME	"name"
+#define XML_ATTR_TEMPLATE_NAME	    "name"
 
 
-TracesParser::TracesParser(tstring const& traceTemplateName, tstring const& traceTemplate) :
-	m_templateName(traceTemplateName),
-    m_fullTemplate(traceTemplate),
-    m_fullRegex(traceTemplate)
+TracesParser::TracesParser(
+    tstring const& traceTemplateName, TraceTemplateValue const& fullTemplate, TraceTemplateValue const& fastTemplate) :
+	m_templateName(traceTemplateName)
 {
-    ASSERT(!m_templateName.empty() && !m_fullTemplate.empty());
+    ASSERT(!m_templateName.empty());
+    ASSERT(!fullTemplate.regex.empty() && !fullTemplate.params.empty());
+    ASSERT(!fastTemplate.regex.empty() && !fastTemplate.params.empty());
+
+    m_fullTemplate = std::make_pair(fullTemplate, Regex(fullTemplate.regex));
+    m_fastTemplate = std::make_pair(fastTemplate, Regex(fastTemplate.regex));
 }
 
-bool TracesParser::Parse(tstring const& trace)
+bool TracesParser::Parse(tstring const& trace, bool fullMode/* = true*/) const
 {
     if (trace.empty())
         return false;
 
+    Regex const& regex = (fullMode ? m_fullTemplate : m_fastTemplate).second;
+
     std::match_results<tstring::const_iterator> result;
-    if (std::regex_match(trace.begin(), trace.end(), result, m_fullRegex))
+    if (std::regex_match(trace.begin(), trace.end(), result, regex))
     {
         for (auto const& i : result)
         {
@@ -58,10 +64,12 @@ tstring TracesParser::GetName() const
 	return m_templateName;
 }
 
-tstring TracesParser::GetTemplate() const
+void TracesParser::GetTemplate(TraceTemplateValue& fullTemplate, TraceTemplateValue& fastTemplate) const
 {
-	return m_fullTemplate;
+    fullTemplate = m_fullTemplate.first;
+    fastTemplate = m_fastTemplate.first;
 }
+
 
 bool TracesParserProvider::Create(tstring const& tracesTemplatesPath)
 try
@@ -86,8 +94,9 @@ try
         }
     }
     
-    m_parsers.push_back(TracesParser(DEFAULT_TRACE_TEMPLATE_NAME, DEFAULT_TRACE_TEMPLATE));
-    return Save();
+    //m_parsers.push_back(TracesParser(DEFAULT_TRACE_TEMPLATE_NAME, DEFAULT_TRACE_TEMPLATE));
+    //return Save();
+    return true;
 }   
 catch (...)
 {
@@ -112,7 +121,7 @@ bool TracesParserProvider::Save() const
 		ASSERT(templateNode);
 
 		templateNode->SetAttribute(XML_ATTR_TEMPLATE_NAME, ToString(parser.GetName()));
-		templateNode->LinkEndChild(new TiXmlText(ToString(parser.GetTemplate())));
+		//templateNode->LinkEndChild(new TiXmlText(ToString(parser.GetTemplate())));
 	}
 
     return document.SaveFile(ToString(m_tracesTemplatesFilePath));
@@ -143,19 +152,25 @@ bool TracesParserProvider::Load()
 			templateNode; templateNode = templateNode->NextSiblingElement(XML_TAG_TEMPLATE))
 		{
 			const char* traceTemplateName   = templateNode->Attribute(XML_ATTR_TEMPLATE_NAME);
-			const char* traceTemplate       = templateNode->GetText();
 
-			if (traceTemplateName && traceTemplate)
-			{
-                try
-                {
-                    TracesParser parser(ToTString(traceTemplateName), ToTString(traceTemplate));
-                    m_parsers.push_back(parser);
-                }
-                catch (...)
-                {
-                }
-			}
+            TiXmlElement* fullTemplateNode = templateNode->FirstChildElement(XML_TAG_TEMPLATE_FULL_MODE);
+            TiXmlElement* fastTemplateNode = fullTemplateNode->NextSiblingElement(XML_TAG_TEMPLATE_FAST_MODE);
+
+            TraceTemplateValue fullTemplate;
+            TraceTemplateValue fastTemplate;
+
+            if (fullTemplateNode &&
+                fastTemplateNode &&
+                LoadTemplate(fullTemplateNode, fullTemplate) &&
+                LoadTemplate(fastTemplateNode, fastTemplate))
+            {
+                TracesParser parser(ToTString(traceTemplateName), fullTemplate, fastTemplate);
+                m_parsers.push_back(parser);
+            }
+            else
+            {
+                return false;
+            }
 		}
 
 		if (m_parsers.empty())
@@ -165,4 +180,12 @@ bool TracesParserProvider::Load()
     }
     else
         return false;
+}
+
+bool TracesParserProvider::LoadTemplate(TiXmlElement* templateNode, TraceTemplateValue& templateValue)
+{
+    if (!templateNode)
+        return false;
+
+    return true;
 }

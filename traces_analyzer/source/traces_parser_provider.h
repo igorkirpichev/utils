@@ -2,25 +2,51 @@
 
 #include "helpers/string.h"
 
+#include "tinyxml/tinyxml.h"
+
 #include <vector>
 #include <regex>
+
+enum TraceTemplateParam
+{
+    Hour = 0,
+    Minute,
+    Second,
+    MSecond,
+    Thread,
+    TraceLevel,
+    Component
+};
+
+struct TraceTemplateValue
+{
+    tstring regex;
+    std::vector<TraceTemplateParam> params;
+};
 
 class TracesParser
 {
 public:
-    TracesParser(tstring const& traceTemplateName, tstring const& traceTemplate);
-
-public:
-    bool Parse(tstring const& trace);
-
-	tstring GetName() const;
-	tstring GetTemplate() const;
+    TracesParser(
+        tstring const& traceTemplateName,
+        TraceTemplateValue const& fullTemplate,
+        TraceTemplateValue const& fastTemplate);
 
 private:
-	tstring const                               m_templateName;
+    typedef std::basic_regex<tstring::value_type>   Regex;
+    typedef std::pair<TraceTemplateValue, Regex>    Template;
 
-    tstring const                               m_fullTemplate;
-    std::basic_regex<tstring::value_type> const m_fullRegex;
+public:
+    bool Parse(tstring const& trace, bool fullMode = true) const;
+
+	tstring GetName() const;
+    void GetTemplate(TraceTemplateValue& fullTemplate, TraceTemplateValue& fastTemplate) const;
+
+private:
+	tstring const   m_templateName;
+
+    Template    m_fullTemplate;
+    Template    m_fastTemplate;
 };
 
 class TracesParserProvider
@@ -32,6 +58,7 @@ public:
 
 private:
     bool Load();
+    bool LoadTemplate(TiXmlElement* templateNode, TraceTemplateValue& templateValue);
     bool Save() const;
     
 private:
