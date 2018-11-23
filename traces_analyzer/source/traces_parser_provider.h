@@ -20,6 +20,14 @@ enum TraceTemplateParam
 
 struct TraceTemplateValue
 {
+    TraceTemplateValue()
+    {};
+
+    TraceTemplateValue(tstring const& regexValue, std::vector<TraceTemplateParam> const& paramsValue) :
+        regex(regexValue),
+        params(paramsValue)
+    {};
+
     tstring regex;
     std::vector<TraceTemplateParam> params;
 };
@@ -58,8 +66,9 @@ public:
 
 private:
     bool Load();
-    bool LoadTemplate(TiXmlElement* templateNode, TraceTemplateValue& templateValue);
-    bool Save() const;
+    bool LoadTemplate(TiXmlElement* templateNode, TraceTemplateValue& templateValue) const;
+    void Save() const;
+    void SaveTemplate(TiXmlElement* templateNode, TraceTemplateValue const& templateValue) const;
     
 private:
     tstring                     m_tracesTemplatesFilePath;

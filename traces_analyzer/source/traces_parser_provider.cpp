@@ -3,6 +3,7 @@
 #include "afxwin.h"
 
 #include <filesystem>
+#include <map>
 
 #if !_HAS_CXX17
 namespace std
@@ -12,18 +13,41 @@ namespace std
 #endif // !_HAS_CXX17
 
 #define TRACES_TEMPLATES_FILE_NAME  TEXT("traces_templates.xml")
-#define DEFAULT_TRACE_TEMPLATE      TEXT("^([\\d]{2,2}):([\\d]{2,2}):([\\d]{2,2}).([\\d]{3,3}).*")
-#define DEFAULT_TRACE_TEMPLATE_NAME TEXT("KAV_KIS")
+
+#define DEFAULT_TRACE_TEMPLATE_NAME         TEXT("KAV_KIS")
+#define DEFAULT_TRACE_FULL_TEMPLATE         TEXT("^([\\d]{2,2}):([\\d]{2,2}):([\\d]{2,2}).([\\d]{3,3}).*")
+#define DEFAULT_TRACE_FULL_TEMPLATE_PARAMS  {Hour, Minute, Second, MSecond, Thread, TraceLevel, Component}
+#define DEFAULT_TRACE_FAST_TEMPLATE         TEXT("^([\\d]{2,2}):([\\d]{2,2}):([\\d]{2,2}).([\\d]{3,3}).*")
+#define DEFAULT_TRACE_FAST_TEMPLATE_PARAMS  {Thread}
 
 // XML tags
 #define XML_TAG_ROOT			    "traces_templates_root"
 #define XML_TAG_TEMPLATE		    "template"
 #define XML_TAG_TEMPLATE_FULL_MODE  "full_mode"
 #define XML_TAG_TEMPLATE_FAST_MODE  "fast_mode"
+#define XML_TAG_REGEX               "regex"
+#define XML_TAG_PARAMS              "params"
 
 // XML attributes
 #define XML_ATTR_TEMPLATE_NAME	    "name"
+#define XML_ATTR_TEMPLATE_PARAMETER "p"
 
+std::map<std::string, TraceTemplateParam> const templateParameters = {
+    {"hour",    Hour},
+    {"min",     Minute},
+    {"sec",     Second},
+    {"msec",    MSecond},
+    {"thread",  Thread},
+    {"level",   TraceLevel},
+    {"cmp",     Component} };
+
+TracesParser CreateDefaultTracesParser()
+{
+    TraceTemplateValue const fullTemplate(DEFAULT_TRACE_FULL_TEMPLATE, DEFAULT_TRACE_FULL_TEMPLATE_PARAMS);
+    TraceTemplateValue const fastTemplate(DEFAULT_TRACE_FAST_TEMPLATE, DEFAULT_TRACE_FAST_TEMPLATE_PARAMS);
+
+    return TracesParser(DEFAULT_TRACE_TEMPLATE_NAME, fullTemplate, fastTemplate);
+}
 
 TracesParser::TracesParser(
     tstring const& traceTemplateName, TraceTemplateValue const& fullTemplate, TraceTemplateValue const& fastTemplate) :
@@ -94,37 +118,15 @@ try
         }
     }
     
-    //m_parsers.push_back(TracesParser(DEFAULT_TRACE_TEMPLATE_NAME, DEFAULT_TRACE_TEMPLATE));
-    //return Save();
+    m_parsers.push_back(CreateDefaultTracesParser());
+    
+    Save();
+    
     return true;
 }   
 catch (...)
 {
     return false;
-}
-
-bool TracesParserProvider::Save() const
-{
-    if (m_parsers.empty())
-        return false;
-
-    TiXmlDocument document;
-
-	document.LinkEndChild(new TiXmlDeclaration("1.0", "utf-8", "yes"));
-	TiXmlNode* rootNode = document.LinkEndChild(new TiXmlElement(XML_TAG_ROOT));
-
-	ASSERT(rootNode);
-
-	for (TracesParser const& parser : m_parsers)
-	{
-		TiXmlElement* templateNode = rootNode->LinkEndChild(new TiXmlElement(XML_TAG_TEMPLATE))->ToElement();
-		ASSERT(templateNode);
-
-		templateNode->SetAttribute(XML_ATTR_TEMPLATE_NAME, ToString(parser.GetName()));
-		//templateNode->LinkEndChild(new TiXmlText(ToString(parser.GetTemplate())));
-	}
-
-    return document.SaveFile(ToString(m_tracesTemplatesFilePath));
 }
 
 size_t TracesParserProvider::GetCountParsers() const
@@ -152,6 +154,8 @@ bool TracesParserProvider::Load()
 			templateNode; templateNode = templateNode->NextSiblingElement(XML_TAG_TEMPLATE))
 		{
 			const char* traceTemplateName   = templateNode->Attribute(XML_ATTR_TEMPLATE_NAME);
+            if (!traceTemplateName)
+                return false;
 
             TiXmlElement* fullTemplateNode = templateNode->FirstChildElement(XML_TAG_TEMPLATE_FULL_MODE);
             TiXmlElement* fastTemplateNode = fullTemplateNode->NextSiblingElement(XML_TAG_TEMPLATE_FAST_MODE);
@@ -182,10 +186,105 @@ bool TracesParserProvider::Load()
         return false;
 }
 
-bool TracesParserProvider::LoadTemplate(TiXmlElement* templateNode, TraceTemplateValue& templateValue)
+bool TracesParserProvider::LoadTemplate(TiXmlElement* templateNode, TraceTemplateValue& templateValue) const
 {
     if (!templateNode)
         return false;
 
+    TraceTemplateValue traceTemplateValue;
+
+    TiXmlElement* regexNode = templateNode->FirstChildElement(XML_TAG_REGEX);
+    if (regexNode)
+    {
+        if (char const* regexText = regexNode->GetText())
+            traceTemplateValue.regex = ToTString(regexText);
+        else
+            return false;
+    }
+    else
+        return false;
+
+    TiXmlElement* paramsNode = templateNode->FirstChildElement(XML_TAG_PARAMS);
+    if (paramsNode)
+    {
+        for (TiXmlAttribute* attribute = paramsNode->FirstAttribute();
+            attribute; attribute = attribute->Next())
+        {
+            auto templateParameter = templateParameters.find(attribute->ValueStr());
+            if (templateParameter == templateParameters.end())
+                return false;
+
+            traceTemplateValue.params.push_back(templateParameter->second);
+        }
+    }
+    else
+        return false;
+
+    templateValue = traceTemplateValue;
     return true;
+}
+
+void TracesParserProvider::Save() const
+{
+    ASSERT(!m_parsers.empty());
+
+    TiXmlDocument document;
+
+    document.LinkEndChild(new TiXmlDeclaration("1.0", "utf-8", "yes"));
+    TiXmlNode* rootNode = document.LinkEndChild(new TiXmlElement(XML_TAG_ROOT));
+
+    for (TracesParser const& parser : m_parsers)
+    {
+        TiXmlElement* templateNode = rootNode->LinkEndChild(new TiXmlElement(XML_TAG_TEMPLATE))->ToElement();
+        templateNode->SetAttribute(XML_ATTR_TEMPLATE_NAME, ToString(parser.GetName()));
+
+        TiXmlElement* fullTemplateNode =
+            templateNode->LinkEndChild(new TiXmlElement(XML_TAG_TEMPLATE_FULL_MODE))->ToElement();
+        
+        TiXmlElement* fastTemplateNode =
+            templateNode->LinkEndChild(new TiXmlElement(XML_TAG_TEMPLATE_FAST_MODE))->ToElement();
+
+        TraceTemplateValue fullTemplate;
+        TraceTemplateValue fastTemplate;
+        
+        parser.GetTemplate(fullTemplate, fastTemplate);
+
+        SaveTemplate(fullTemplateNode, fullTemplate);
+        SaveTemplate(fastTemplateNode, fastTemplate);
+    }
+
+    document.SaveFile(ToString(m_tracesTemplatesFilePath));
+}
+
+void TracesParserProvider::SaveTemplate(TiXmlElement* templateNode, TraceTemplateValue const& templateValue) const
+{
+    ASSERT(templateNode);
+
+    TiXmlElement* regexNode =
+        templateNode->LinkEndChild(new TiXmlElement(XML_TAG_REGEX))->ToElement();
+
+    regexNode->LinkEndChild(new TiXmlText(ToString(templateValue.regex)));
+
+    TiXmlElement* paramsNode =
+        templateNode->LinkEndChild(new TiXmlElement(XML_TAG_PARAMS))->ToElement();
+
+    int i = 0;
+    for (TraceTemplateParam const& parameter : templateValue.params)
+    {
+        std::string parameterText;
+        for (auto templateParameter : templateParameters)
+        {
+            if (parameter == templateParameter.second)
+            {
+                std::stringstream ss;
+                ss << XML_ATTR_TEMPLATE_PARAMETER << i++;
+
+                paramsNode->SetAttribute(ss.str(), templateParameter.first);
+                
+                break;
+            }
+        }
+    }
+
+    ASSERT(i == templateValue.params.size());
 }
