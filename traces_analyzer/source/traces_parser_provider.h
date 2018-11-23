@@ -67,7 +67,7 @@ public:
 private:
     bool Load();
     bool LoadTemplate(TiXmlElement* templateNode, TraceTemplateValue& templateValue) const;
-    void Save() const;
+    bool Save() const;
     void SaveTemplate(TiXmlElement* templateNode, TraceTemplateValue const& templateValue) const;
     
 private:

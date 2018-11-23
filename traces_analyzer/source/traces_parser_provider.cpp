@@ -120,9 +120,7 @@ try
     
     m_parsers.push_back(CreateDefaultTracesParser());
     
-    Save();
-    
-    return true;
+    return Save();
 }   
 catch (...)
 {
@@ -224,7 +222,7 @@ bool TracesParserProvider::LoadTemplate(TiXmlElement* templateNode, TraceTemplat
     return true;
 }
 
-void TracesParserProvider::Save() const
+bool TracesParserProvider::Save() const
 {
     ASSERT(!m_parsers.empty());
 
@@ -253,7 +251,7 @@ void TracesParserProvider::Save() const
         SaveTemplate(fastTemplateNode, fastTemplate);
     }
 
-    document.SaveFile(ToString(m_tracesTemplatesFilePath));
+    return document.SaveFile(ToString(m_tracesTemplatesFilePath));
 }
 
 void TracesParserProvider::SaveTemplate(TiXmlElement* templateNode, TraceTemplateValue const& templateValue) const
