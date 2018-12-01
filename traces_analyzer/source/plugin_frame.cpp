@@ -51,7 +51,20 @@ PluginFrame::PluginFrame(PluginInfo const& info) :
         if (m_tracesParserProvider.GetCountParsers())
         {
             TracesParser parser = m_tracesParserProvider.GetParser(0);
-            parser.Parse(testTrace);
+
+            TraceDescription traceDescription = {0};
+            tstring::const_iterator traceTextBegin;
+
+            DWORD const begin = ::GetTickCount();
+
+            for (int i = 0; i < 1000; ++i)
+            {
+                bool const result = parser.Parse(testTrace, traceDescription, traceTextBegin, false);
+            }
+
+            DWORD const end = ::GetTickCount() - begin;
+
+            int d = 0;
         }
     }
 }

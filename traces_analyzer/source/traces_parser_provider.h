@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <regex>
+#include <chrono>
 
 enum TraceTemplateParam
 {
@@ -14,8 +15,32 @@ enum TraceTemplateParam
     Second,
     MSecond,
     Thread,
-    TraceLevel,
+    Level,
     Component
+};
+
+enum TraceLevel
+{
+    WRN = 0,
+    DBG,
+    INF,
+    ERR
+};
+
+struct TraceTime
+{
+    uint8_t hour;
+    uint8_t minute;
+    uint8_t second;
+    uint16_t msecond;
+};
+
+struct TraceDescription
+{
+    TraceTime   time;
+    uint32_t    threadId;
+    TraceLevel  level;
+    tstring     component;
 };
 
 struct TraceTemplateValue
@@ -45,7 +70,11 @@ private:
     typedef std::pair<TraceTemplateValue, Regex>    Template;
 
 public:
-    bool Parse(tstring const& trace, bool fullMode = true) const;
+    bool Parse(
+        tstring const& trace,
+        TraceDescription& traceDescription,
+        tstring::const_iterator& traceTextBegin,
+        bool fullMode = true) const;
 
 	tstring GetName() const;
     void GetTemplate(TraceTemplateValue& fullTemplate, TraceTemplateValue& fastTemplate) const;

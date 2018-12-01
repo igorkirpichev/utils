@@ -15,9 +15,9 @@ namespace std
 #define TRACES_TEMPLATES_FILE_NAME  TEXT("traces_templates.xml")
 
 #define DEFAULT_TRACE_TEMPLATE_NAME         TEXT("KAV_KIS")
-#define DEFAULT_TRACE_FULL_TEMPLATE         TEXT("^([\\d]{2,2}):([\\d]{2,2}):([\\d]{2,2}).([\\d]{3,3}).*")
-#define DEFAULT_TRACE_FULL_TEMPLATE_PARAMS  {Hour, Minute, Second, MSecond, Thread, TraceLevel, Component}
-#define DEFAULT_TRACE_FAST_TEMPLATE         TEXT("^([\\d]{2,2}):([\\d]{2,2}):([\\d]{2,2}).([\\d]{3,3}).*")
+#define DEFAULT_TRACE_FULL_TEMPLATE         TEXT("^(\\d{2}):(\\d{2}):(\\d{2}).(\\d{3})\\t0x([\\da-fA-F]{1,4})\\t([A-Z]{3})\\t([\\w\\.]+)\\t([\\s\\S]*)")
+#define DEFAULT_TRACE_FULL_TEMPLATE_PARAMS  {Hour, Minute, Second, MSecond, Thread, Level, Component}
+#define DEFAULT_TRACE_FAST_TEMPLATE         TEXT("^.+?\\t0x([\\da-fA-F]{1,4})\\t.+?\\t.+?\\t([\\s\\S]*)")
 #define DEFAULT_TRACE_FAST_TEMPLATE_PARAMS  {Thread}
 
 // XML tags
@@ -38,8 +38,14 @@ std::map<std::string, TraceTemplateParam> const templateParameters = {
     {"sec",     Second},
     {"msec",    MSecond},
     {"thread",  Thread},
-    {"level",   TraceLevel},
+    {"level",   Level},
     {"cmp",     Component} };
+
+std::map<tstring, TraceLevel> const traceLevels = {
+    {TEXT("WRN"), WRN},
+    {TEXT("DBG"), DBG},
+    {TEXT("INF"), INF},
+    {TEXT("ERR"), ERR} };
 
 TracesParser CreateDefaultTracesParser()
 {
@@ -61,22 +67,90 @@ TracesParser::TracesParser(
     m_fastTemplate = std::make_pair(fastTemplate, Regex(fastTemplate.regex));
 }
 
-bool TracesParser::Parse(tstring const& trace, bool fullMode/* = true*/) const
+bool TracesParser::Parse(
+    tstring const& trace, 
+    TraceDescription& traceDescription,
+    tstring::const_iterator& traceTextBegin,
+    bool fullMode/* = true*/) const
 {
     if (trace.empty())
         return false;
 
-    Regex const& regex = (fullMode ? m_fullTemplate : m_fastTemplate).second;
+    traceDescription    = { 0 };
+    traceTextBegin      = trace.end();
+
+    Template const& traceTemplate = (fullMode ? m_fullTemplate : m_fastTemplate);
 
     std::match_results<tstring::const_iterator> result;
-    if (std::regex_match(trace.begin(), trace.end(), result, regex))
+    if (std::regex_match(trace.begin(), trace.end(), result, traceTemplate.second))
     {
-        for (auto const& i : result)
-        {
-            tstring const sub = i.str();
+        std::vector<TraceTemplateParam> const& params = traceTemplate.first.params;
 
+        if ((result.size() - 2) != params.size())
+            return false;
+
+        TraceDescription descrition = {0};
+
+        auto paramIterator = params.begin();
+        for (auto resultIterator = ++result.begin();
+            (resultIterator != --result.end()) && (paramIterator != params.end()); ++resultIterator, ++paramIterator)
+        {
+            switch (*paramIterator)
+            {
+                case Hour:
+                {
+                    descrition.time.hour = std::stoi(resultIterator->str());
+                    break;
+                }
+                
+                case Minute:
+                {
+                    descrition.time.minute = std::stoi(resultIterator->str());
+                    break;
+                }
+
+                case Second:
+                {
+                    descrition.time.second = std::stoi(resultIterator->str());
+                    break;
+                }
+
+                case MSecond:
+                {
+                    descrition.time.msecond = std::stoi(resultIterator->str());
+                    break;
+                }
+
+                case Thread:
+                {
+                    descrition.threadId = std::stoi(resultIterator->str(), nullptr, 16);
+                    break;
+                }
+
+                case Level:
+                {
+                    auto const& findedLevel = traceLevels.find(resultIterator->str());
+                    if (findedLevel != traceLevels.end())
+                        descrition.level = findedLevel->second;
+                    else
+                        return false;
+
+                    break;
+                }
+
+                case Component:
+                {
+                    descrition.component = resultIterator->str();
+                    break;
+                }
+
+                default:
+                    return false;
+            }
         }
 
+        traceDescription    = descrition;
+        traceTextBegin      = (--result.end())->first;
         return true;
     }
     else
@@ -156,6 +230,9 @@ bool TracesParserProvider::Load()
                 return false;
 
             TiXmlElement* fullTemplateNode = templateNode->FirstChildElement(XML_TAG_TEMPLATE_FULL_MODE);
+            if (!fullTemplateNode)
+                return false;
+
             TiXmlElement* fastTemplateNode = fullTemplateNode->NextSiblingElement(XML_TAG_TEMPLATE_FAST_MODE);
 
             TraceTemplateValue fullTemplate;
@@ -212,8 +289,15 @@ bool TracesParserProvider::LoadTemplate(TiXmlElement* templateNode, TraceTemplat
             if (templateParameter == templateParameters.end())
                 return false;
 
+            if (std::find(traceTemplateValue.params.begin(), traceTemplateValue.params.end(), templateParameter->second) !=
+                traceTemplateValue.params.end())
+                return false;
+
             traceTemplateValue.params.push_back(templateParameter->second);
         }
+
+        if (traceTemplateValue.params.empty())
+            return false;
     }
     else
         return false;
