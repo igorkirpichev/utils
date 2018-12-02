@@ -24,7 +24,9 @@ enum TraceLevel
     WRN = 0,
     DBG,
     INF,
-    ERR
+    ERR,
+    ALW,
+    IMP
 };
 
 struct TraceTime

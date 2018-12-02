@@ -15,9 +15,9 @@ namespace std
 #define TRACES_TEMPLATES_FILE_NAME  TEXT("traces_templates.xml")
 
 #define DEFAULT_TRACE_TEMPLATE_NAME         TEXT("KAV_KIS")
-#define DEFAULT_TRACE_FULL_TEMPLATE         TEXT("^(\\d{2}):(\\d{2}):(\\d{2}).(\\d{3})\\t0x([\\da-fA-F]{1,4})\\t([A-Z]{3})\\t([\\w\\.]+)\\t([\\s\\S]*)")
+#define DEFAULT_TRACE_FULL_TEMPLATE         TEXT("^(\\d{2}):(\\d{2}):(\\d{2}).(\\d{3})\\t0x([\\da-fA-F]{1,4}?)\\t([A-Z]{3})\\t([\\w\\.]+?)\\t")
 #define DEFAULT_TRACE_FULL_TEMPLATE_PARAMS  {Hour, Minute, Second, MSecond, Thread, Level, Component}
-#define DEFAULT_TRACE_FAST_TEMPLATE         TEXT("^.+?\\t0x([\\da-fA-F]{1,4})\\t.+?\\t.+?\\t([\\s\\S]*)")
+#define DEFAULT_TRACE_FAST_TEMPLATE         TEXT("^.+?\t0x([\\da-fA-F]{1,4}?)\\t.+?\\t.+?\\t")
 #define DEFAULT_TRACE_FAST_TEMPLATE_PARAMS  {Thread}
 
 // XML tags
@@ -45,7 +45,9 @@ std::map<tstring, TraceLevel> const traceLevels = {
     {TEXT("WRN"), WRN},
     {TEXT("DBG"), DBG},
     {TEXT("INF"), INF},
-    {TEXT("ERR"), ERR} };
+    {TEXT("ERR"), ERR},
+    {TEXT("ALW"), ALW},
+    {TEXT("IMP"), IMP} };
 
 TracesParser CreateDefaultTracesParser()
 {
@@ -82,48 +84,49 @@ bool TracesParser::Parse(
     Template const& traceTemplate = (fullMode ? m_fullTemplate : m_fastTemplate);
 
     std::match_results<tstring::const_iterator> result;
-    if (std::regex_match(trace.begin(), trace.end(), result, traceTemplate.second))
+
+    if (std::regex_search(trace.begin(), trace.end(), result, traceTemplate.second))
     {
         std::vector<TraceTemplateParam> const& params = traceTemplate.first.params;
 
-        if ((result.size() - 2) != params.size())
+        if ((result.size() - 1) != params.size())
             return false;
 
-        TraceDescription descrition = {0};
+        TraceDescription description = {0};
 
         auto paramIterator = params.begin();
         for (auto resultIterator = ++result.begin();
-            (resultIterator != --result.end()) && (paramIterator != params.end()); ++resultIterator, ++paramIterator)
+            (resultIterator != result.end()) && (paramIterator != params.end()); ++resultIterator, ++paramIterator)
         {
             switch (*paramIterator)
             {
                 case Hour:
                 {
-                    descrition.time.hour = std::stoi(resultIterator->str());
+                    description.time.hour = std::stoi(resultIterator->str());
                     break;
                 }
                 
                 case Minute:
                 {
-                    descrition.time.minute = std::stoi(resultIterator->str());
+                    description.time.minute = std::stoi(resultIterator->str());
                     break;
                 }
 
                 case Second:
                 {
-                    descrition.time.second = std::stoi(resultIterator->str());
+                    description.time.second = std::stoi(resultIterator->str());
                     break;
                 }
 
                 case MSecond:
                 {
-                    descrition.time.msecond = std::stoi(resultIterator->str());
+                    description.time.msecond = std::stoi(resultIterator->str());
                     break;
                 }
 
                 case Thread:
                 {
-                    descrition.threadId = std::stoi(resultIterator->str(), nullptr, 16);
+                    description.threadId = std::stoi(resultIterator->str(), nullptr, 16);
                     break;
                 }
 
@@ -131,7 +134,7 @@ bool TracesParser::Parse(
                 {
                     auto const& findedLevel = traceLevels.find(resultIterator->str());
                     if (findedLevel != traceLevels.end())
-                        descrition.level = findedLevel->second;
+                        description.level = findedLevel->second;
                     else
                         return false;
 
@@ -140,7 +143,7 @@ bool TracesParser::Parse(
 
                 case Component:
                 {
-                    descrition.component = resultIterator->str();
+                    description.component = resultIterator->str();
                     break;
                 }
 
@@ -149,8 +152,8 @@ bool TracesParser::Parse(
             }
         }
 
-        traceDescription    = descrition;
-        traceTextBegin      = (--result.end())->first;
+        traceDescription    = description;
+        traceTextBegin      = result.begin()->second;
         return true;
     }
     else

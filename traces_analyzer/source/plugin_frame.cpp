@@ -5,6 +5,8 @@
 #include "helpers/check.h"
 
 #include "npp/notepad_plus_msgs.h"
+#include "npp/scintilla.h"
+#include "npp/menu_cmd_id.h"
 
 #include "afxvisualmanagerofficexp.h"
 
@@ -45,27 +47,40 @@ PluginFrame::PluginFrame(PluginInfo const& info) :
 
     // Чисто парсер потестить
     {
-        tstring const testTrace(TEXT("05:45:10.579	0x3c4	INF	esm	Added service name='antimalware.sandbox.client.EngineManager', serviceKey=0xb6137d49, clsid=0xb6137d49, category=null; implements iface=0x6a9831dc"));
-        //tstring testTrace(TEXT("05:45 : 12.063	0x3c4	INF	esm	Returning new service name = 'klif.volume_monitor.VolumeMonitor', serviceKey = 0x3d8161fa, hostId = 0x00000002, accessPointId = 0x00000000, object = 0x04309978. Interface requested iface = 0xeab3b035, serviceKey = 0x00000000, hostId = 0x00000000, accessPointId = 0x00000000, requestor = { unknown }"));
+        TracesParser parser = m_tracesParserProvider.GetParser(0);
+        
+        int currentEdit = 0;
+        
+        ::SendMessage(m_info.npp, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&currentEdit);
+        HWND const scintilla = currentEdit ? m_info.scintillaSecond : m_info.scintillaMain;
+        ASSERT(scintilla);
 
-        if (m_tracesParserProvider.GetCountParsers())
+        std::vector<tstring> lines;
+
+        LRESULT const lineCount = ::SendMessage(scintilla, SCI_GETLINECOUNT, 0, 0);
+        std::vector<char> buffer(1000);
+        for (int i = 0; i < lineCount; ++i)
         {
-            TracesParser parser = m_tracesParserProvider.GetParser(0);
+            memset(buffer.data(), 0, buffer.size());
+            if (!::SendMessage(scintilla, SCI_GETLINE, i, (LPARAM)buffer.data()))
+                continue;
 
-            TraceDescription traceDescription = {0};
-            tstring::const_iterator traceTextBegin;
-
-            DWORD const begin = ::GetTickCount();
-
-            for (int i = 0; i < 1000; ++i)
-            {
-                bool const result = parser.Parse(testTrace, traceDescription, traceTextBegin, false);
-            }
-
-            DWORD const end = ::GetTickCount() - begin;
-
-            int d = 0;
+            lines.push_back(ToTString(buffer.data()));
         }
+
+        TraceDescription traceDescription = { 0 };
+        tstring::const_iterator traceTextBegin;
+
+        DWORD begin = ::GetTickCount();
+
+        for (tstring const& line : lines)
+        {
+            parser.Parse(line, traceDescription, traceTextBegin, false);
+        }
+
+        DWORD ens = ::GetTickCount() - begin;
+
+        int d = 0;
     }
 }
 
