@@ -6,6 +6,16 @@
 #define SCHEME_DEFAULT_FILE_NAME        TEXT("New scheme")
 #define SCHEME_DEFAULT_FILE_NAME_FILTER TEXT("Traces analyzer scheme (*.xml) | *.xml|")
 
+class SchemeTemplate
+{
+public:
+    SchemeTemplate();
+
+private:
+    tstring m_name;
+
+};
+
 class Scheme
 {
 public:
@@ -14,6 +24,7 @@ public:
 
 public:
     bool Load(tstring const& filePath);
+    bool LoadTemplate(TiXmlElement* templateNode);
     bool Save(tstring const& filePath = tstring());
     
     bool IsModified() const;

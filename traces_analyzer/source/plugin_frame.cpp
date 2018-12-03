@@ -46,11 +46,11 @@ PluginFrame::PluginFrame(PluginInfo const& info) :
         MessageBox(TEXT("Failed to load traces templates"), m_info.name.c_str(), MB_OK | MB_ICONERROR);
 
     // Чисто парсер потестить
-    {
+    /*{
         TracesParser parser = m_tracesParserProvider.GetParser(0);
-        
+
         int currentEdit = 0;
-        
+
         ::SendMessage(m_info.npp, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&currentEdit);
         HWND const scintilla = currentEdit ? m_info.scintillaSecond : m_info.scintillaMain;
         ASSERT(scintilla);
@@ -81,7 +81,7 @@ PluginFrame::PluginFrame(PluginInfo const& info) :
         DWORD ens = ::GetTickCount() - begin;
 
         int d = 0;
-    }
+    }*/
 }
 
 PluginFrame::~PluginFrame()

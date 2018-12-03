@@ -4,10 +4,11 @@
 
 #include "tinyxml/tinyxml.h"
 
+#define XML_TAG_ROOT			    "scheme_templates_root"
+#define XML_TAG_TEMPLATE		    "template"
 
 Scheme::Scheme()
 {
-    m_fileName = TEXT("");
 }
 
 
@@ -15,16 +16,34 @@ Scheme::~Scheme()
 {
 }
 
-//bool Scheme::Load(tstring const& filePath)
-//{
-//    TiXmlDocument doc(ToString(filePath));
-//    return false;
-//
-//}
-
 bool Scheme::Load(tstring const& filePath)
 {
+    ASSERT(!filePath.empty());
+
+    m_fileName.clear();
+
+    if (filePath.empty())
+        return false;
+
+    TiXmlDocument document;
+    if (document.LoadFile(ToString(filePath)))
+    {
+        TiXmlElement* rootNode = document.RootElement();
+        if (!rootNode)
+            return false;
+
+        for (TiXmlElement* templateNode = rootNode->FirstChildElement(XML_TAG_TEMPLATE);
+            templateNode; templateNode = templateNode->NextSiblingElement(XML_TAG_TEMPLATE))
+        {
+        }
+    }
+
     return false;
+}
+
+bool Scheme::LoadTemplate(TiXmlElement* templateNode)
+{
+
 }
 
 
