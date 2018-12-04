@@ -25,6 +25,9 @@
     <ClCompile Include="..\source\traces_parser_provider.cpp">
       <Filter>source</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\scheme_template.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\helpers\check.h">
@@ -64,6 +67,9 @@
       <Filter>source\helpers</Filter>
     </ClInclude>
     <ClInclude Include="..\source\traces_parser_provider.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\scheme_template.h">
       <Filter>source</Filter>
     </ClInclude>
   </ItemGroup>

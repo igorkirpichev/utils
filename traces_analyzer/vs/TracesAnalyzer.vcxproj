@@ -30,6 +30,7 @@
     <ClInclude Include="..\source\plugin_frame.h" />
     <ClInclude Include="..\source\registry.h" />
     <ClInclude Include="..\source\scheme.h" />
+    <ClInclude Include="..\source\scheme_template.h" />
     <ClInclude Include="..\source\tinyxml\tinyxml.h" />
     <ClInclude Include="..\source\traces_parser_provider.h" />
   </ItemGroup>
@@ -38,6 +39,7 @@
     <ClCompile Include="..\source\plugin_application.cpp" />
     <ClCompile Include="..\source\plugin_frame.cpp" />
     <ClCompile Include="..\source\scheme.cpp" />
+    <ClCompile Include="..\source\scheme_template.cpp" />
     <ClCompile Include="..\source\tinyxml\tinyxml.cpp" />
     <ClCompile Include="..\source\tinyxml\tinyxmlerror.cpp" />
     <ClCompile Include="..\source\tinyxml\tinyxmlparser.cpp" />
