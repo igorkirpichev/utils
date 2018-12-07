@@ -1,5 +1,9 @@
 #include "scheme_template.h"
 
+#include "afxwin.h"
+
+#include <algorithm>
+
 SchemeTemplate::SchemeTemplate(tstring const& name) :
     m_name(name)
 {}
@@ -37,4 +41,15 @@ void MultipleSchemeTemplate::GetTracePoint(TracePoint& beginTracePoint, TracePoi
 {
     beginTracePoint = m_beginTracePoint;
     endTracePoint   = m_endTracePoint;
+}
+
+void MultipleSchemeTemplate::EnumerateTemplates(ISchemeTemplatesReceiver* receiver) const
+{
+    ASSERT(receiver);
+
+    std::for_each(m_templates.begin(), m_templates.end(),
+        [receiver](std::unique_ptr<SchemeTemplate> const& schemeTemplate)
+        {
+            receiver->EnumTemplate(schemeTemplate.get());
+        });
 }

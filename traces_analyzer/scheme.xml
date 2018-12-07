@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<scheme_templates_root>
+    <template name="Simple template" class_id="0">
+	<trace_point>
+		<regex>^.*</regex>
+        </trace_point>
+    </template>
+    <template name="Multi template" class_id="1">
+	<begin_trace_point>
+		<regex>^.*</regex>
+        </begin_trace_point>
+	<end_trace_point>
+		<regex>^.*</regex>
+        </end_trace_point>
+    </template>
+</scheme_templates_root>

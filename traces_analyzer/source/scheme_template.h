@@ -6,15 +6,25 @@
 
 enum SchemeTemplateClassID
 {
-    SingleTemplate = 0,
-    MultipleTemplate
+    SingleTemplate      = 0,
+    MultipleTemplate    = 1
 };
+
+class SchemeTemplate;
+
+class ISchemeTemplatesReceiver
+{
+public:
+    virtual void EnumTemplate(SchemeTemplate* schemeTemplate) = 0;
+};
+
 
 class TracePoint
 {
 
 
 };
+
 
 class SchemeTemplate
 {
@@ -33,20 +43,6 @@ private:
 
 };
 
-class SchemeTemplatesReceiver 
-{
-public:
-    virtual void EnumTemplate(SchemeTemplate* schemeTemplate) = 0;
-};
-
-class SchemeTemplatesEnumerator
-{
-public:
-    virtual void Enumerate(SchemeTemplatesReceiver const& receiver) const = 0;
-
-private:
-    std::vector<std::unique_ptr<SchemeTemplate>> m_templates;
-};
 
 class SingleSchemeTemplate :
     public SchemeTemplate
@@ -69,8 +65,7 @@ private:
 };
 
 class MultipleSchemeTemplate :
-    public SchemeTemplate,
-    public SchemeTemplatesEnumerator
+    public SchemeTemplate
 {
 public:
     MultipleSchemeTemplate(tstring const& name);
@@ -84,8 +79,11 @@ public:
 
 public:
     void GetTracePoint(TracePoint& beginTracePoint, TracePoint& endTracePoint) const;
+    void EnumerateTemplates(ISchemeTemplatesReceiver* receiver) const;
     
 private:
     TracePoint const m_beginTracePoint;
     TracePoint const m_endTracePoint;
+
+    std::vector<std::unique_ptr<SchemeTemplate>> m_templates;
 };

@@ -144,10 +144,10 @@ void PluginFrame::OnFileOpen()
             OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
             SCHEME_DEFAULT_FILE_NAME_FILTER);
         
-        if (dialog.DoModal() == IDOK)
+        //if (dialog.DoModal() == IDOK)
         {
             std::unique_ptr<Scheme> newScheme(new Scheme());
-            if (newScheme->Load(dialog.GetPathName().GetBuffer()))
+            if (newScheme->Load(TEXT("D:\\scheme.xml") /*dialog.GetPathName().GetBuffer()*/))
                 m_scheme = std::move(newScheme);
             else
                 MessageBox(TEXT("Failed to open analyzes scheme"), m_info.name.c_str(), MB_OK | MB_ICONERROR);

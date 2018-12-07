@@ -1,6 +1,8 @@
 #pragma once
-
+#include "scheme_template.h"
 #include "helpers/string.h"
+
+#include "tinyxml/tinyxml.h"
 
 #define SCHEME_FILE_EXTENSTION          TEXT("xml")
 #define SCHEME_DEFAULT_FILE_NAME        TEXT("New scheme")
@@ -14,7 +16,7 @@ public:
 
 public:
     bool Load(tstring const& filePath);
-    bool LoadTemplate(TiXmlElement* templateNode);
+    bool LoadTemplate(TiXmlElement* templateNode, std::unique_ptr<SchemeTemplate>& schemeTemplate);
     bool Save(tstring const& filePath = tstring());
     
     bool IsModified() const;
