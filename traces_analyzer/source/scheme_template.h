@@ -48,7 +48,7 @@ class SingleSchemeTemplate :
     public SchemeTemplate
 {
 public:
-    SingleSchemeTemplate(tstring const& name);
+    SingleSchemeTemplate(tstring const& name, tstring const& regexString);
 
 private:
     const SchemeTemplateClassID classId = SingleTemplate;
@@ -68,7 +68,7 @@ class MultipleSchemeTemplate :
     public SchemeTemplate
 {
 public:
-    MultipleSchemeTemplate(tstring const& name);
+    MultipleSchemeTemplate(tstring const& name, tstring const& beginRegexString, tstring const& endRegexString);
 
 private:
     const SchemeTemplateClassID classId = MultipleTemplate;

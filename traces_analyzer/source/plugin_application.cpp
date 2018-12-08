@@ -152,6 +152,10 @@ void PluginApplication::OnPluginNewFile()
 {
     if (PluginApplication* application = static_cast<PluginApplication*>(AfxGetApp()))
     {
+        ::MessageBox(application->m_pluginInfo.npp,
+            TEXT("Feature not available yet"), application->m_pluginInfo.name.c_str(), MB_OK | MB_ICONINFORMATION);
+        return;
+
         if (application->InitializeAnalyzer())
             application->m_pMainWnd->SendMessage(WM_COMMAND, ID_FILE_NEW, 0);
      

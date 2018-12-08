@@ -129,6 +129,9 @@ void PluginFrame::OnWindowPosChanged(WINDOWPOS* wndPos)
 
 void PluginFrame::OnFileNew()
 {
+    MessageBox(TEXT("Feature not available yet"), m_info.name.c_str(), MB_OK | MB_ICONINFORMATION);
+    return;
+
     if (SaveModifiedScheme())
         m_scheme.reset(new Scheme());
 }
@@ -205,6 +208,9 @@ bool PluginFrame::SaveModifiedScheme()
 
 bool PluginFrame::SaveScheme()
 {
+    MessageBox(TEXT("Feature not available yet"), m_info.name.c_str(), MB_OK | MB_ICONINFORMATION);
+    return false;
+
     if (m_scheme)
     {
         tstring const fileName = m_scheme->GetFileName();

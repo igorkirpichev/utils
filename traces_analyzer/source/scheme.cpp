@@ -43,10 +43,10 @@ bool Scheme::Load(tstring const& filePath)
             templateNode; templateNode = templateNode->NextSiblingElement(XML_TAG_TEMPLATE))
         {
             std::unique_ptr<SchemeTemplate> schemeTemplate;
-            if (!LoadTemplate(templateNode, schemeTemplate))
+            if (!MakeTemplate(templateNode, schemeTemplate))
                 return false;
 
-            // create template
+            ASSERT(schemeTemplate);
         }
 
         m_fileName = filePath;
@@ -56,7 +56,7 @@ bool Scheme::Load(tstring const& filePath)
     return false;
 }
 
-bool Scheme::LoadTemplate(TiXmlElement* templateNode, std::unique_ptr<SchemeTemplate>& schemeTemplate)
+bool Scheme::MakeTemplate(TiXmlElement* templateNode, std::unique_ptr<SchemeTemplate>& schemeTemplate)
 {
     if (!templateNode)
         return false;
@@ -71,15 +71,37 @@ bool Scheme::LoadTemplate(TiXmlElement* templateNode, std::unique_ptr<SchemeTemp
     if (!templateNode->Attribute(XML_ATTR_TEMPLATE_CLASS_ID, &schemeTemplateClassId))
         return false;
 
+    std::unique_ptr<SchemeTemplate> newSchemeTemplate;
+
     switch (static_cast<SchemeTemplateClassID>(schemeTemplateClassId))
     {
         case SingleTemplate:
         {
+            tstring regexString;
+            
+            TiXmlElement* tracePointNode = templateNode->FirstChildElement(XML_TAG_TRACE_POINT);
+            if (!MakeTracePoint(tracePointNode, regexString))
+                return false;
+
+            newSchemeTemplate.reset(new SingleSchemeTemplate(ToTString(schemeTemplateName), regexString));
             break;
         }
 
         case MultipleTemplate:
         {
+            tstring beginRegexString;
+            tstring endRegexString;
+
+            TiXmlElement* beginTracePointNode = templateNode->FirstChildElement(XML_TAG_BEGIN_TRACE_POINT);
+            if (!MakeTracePoint(beginTracePointNode, beginRegexString))
+                return false;
+
+            TiXmlElement* endTracePointNode = beginTracePointNode->NextSiblingElement(XML_TAG_END_TRACE_POINT);
+            if (!MakeTracePoint(endTracePointNode, endRegexString))
+                return false;
+
+            newSchemeTemplate.reset(
+                new MultipleSchemeTemplate(ToTString(schemeTemplateName), beginRegexString, endRegexString));
             break;
         }
 
@@ -87,7 +109,33 @@ bool Scheme::LoadTemplate(TiXmlElement* templateNode, std::unique_ptr<SchemeTemp
             return false;
     }
 
+    ASSERT(newSchemeTemplate);
+    schemeTemplate.swap(newSchemeTemplate);
+
     return true;
+}
+
+bool Scheme::MakeTracePoint(TiXmlElement* tracePointNode, tstring& regexString)
+{
+    if (!tracePointNode)
+        return false;
+
+    regexString.clear();
+
+    TiXmlElement* regexNode = tracePointNode->FirstChildElement(XML_TAG_REGEX);
+    if (regexNode)
+    {
+        if (char const* regexText = regexNode->GetText())
+            regexString = ToTString(regexText);
+        else
+            return false;
+        
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 
@@ -109,4 +157,14 @@ tstring Scheme::GetFileName() const
 tstring Scheme::GetDisplayFileName() const
 {
     return m_fileName.substr(m_fileName.find_last_of(TEXT("/\\")) + 1);
+}
+
+size_t Scheme::GetCountSchemeItems() const
+{
+    return m_items.size();
+}
+
+SchemeItem const& Scheme::GetSchemeItem(size_t i) const
+{
+    return m_items[i];
 }
