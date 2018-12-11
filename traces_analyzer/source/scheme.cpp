@@ -14,13 +14,15 @@
 #define XML_ATTR_TEMPLATE_NAME	    "name"
 #define XML_ATTR_TEMPLATE_CLASS_ID  "class_id"
 
-Scheme::Scheme()
+SchemeItem::SchemeItem(std::unique_ptr<SchemeTemplate>&& schemeTemplate) :
+    m_schemeTemplate(std::move(schemeTemplate)),
+    m_enabled(true)
 {
 }
 
-
-Scheme::~Scheme()
+bool SchemeItem::IsEnabled() const
 {
+    return m_enabled;
 }
 
 bool Scheme::Load(tstring const& filePath)
@@ -39,6 +41,8 @@ bool Scheme::Load(tstring const& filePath)
         if (!rootNode)
             return false;
 
+        std::vector<SchemeItem> schemeItems;
+
         for (TiXmlElement* templateNode = rootNode->FirstChildElement(XML_TAG_TEMPLATE);
             templateNode; templateNode = templateNode->NextSiblingElement(XML_TAG_TEMPLATE))
         {
@@ -47,8 +51,11 @@ bool Scheme::Load(tstring const& filePath)
                 return false;
 
             ASSERT(schemeTemplate);
+            
+            schemeItems.emplace_back(std::move(schemeTemplate));
         }
 
+        m_items = schemeItems;
         m_fileName = filePath;
         return true;
     }

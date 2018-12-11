@@ -72,6 +72,9 @@
     <ClInclude Include="..\source\scheme_template.h">
       <Filter>source</Filter>
     </ClInclude>
+    <ClInclude Include="..\source\helpers\non_copyable.h">
+      <Filter>source\helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="source">

@@ -25,6 +25,7 @@
     <ClInclude Include="..\include\npp\scintilla.h" />
     <ClInclude Include="..\resource\resource.h" />
     <ClInclude Include="..\source\helpers\check.h" />
+    <ClInclude Include="..\source\helpers\non_copyable.h" />
     <ClInclude Include="..\source\helpers\string.h" />
     <ClInclude Include="..\source\plugin_application.h" />
     <ClInclude Include="..\source\plugin_frame.h" />

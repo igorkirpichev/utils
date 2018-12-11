@@ -1,6 +1,7 @@
 #pragma once
 #include "scheme_template.h"
 #include "helpers/string.h"
+#include "helpers/non_copyable.h"
 
 #include "tinyxml/tinyxml.h"
 
@@ -8,25 +9,22 @@
 #define SCHEME_DEFAULT_FILE_NAME        TEXT("New scheme")
 #define SCHEME_DEFAULT_FILE_NAME_FILTER TEXT("Traces analyzer scheme (*.xml) | *.xml|")
 
-class SchemeItem
+class SchemeItem :
+    public NonCopyable
 {
 public:
-    SchemeItem();
+    SchemeItem(std::unique_ptr<SchemeTemplate>&& schemeTemplate);
 
+public:
+    bool IsEnabled() const;
+    
 private:
-    SchemeItem(SchemeItem const&) = delete;
-    SchemeItem& operator=(SchemeItem const&) = delete;
-
-private:
-    std::unique_ptr<SchemeTemplate> m_schemeTemplate;
+    bool                                    m_enabled;
+    std::unique_ptr<SchemeTemplate> const   m_schemeTemplate;
 };
 
 class Scheme
 {
-public:
-    Scheme();
-    ~Scheme();
-
 public:
     bool                Load(tstring const& filePath);
     bool                Save(tstring const& filePath = tstring());
