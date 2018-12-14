@@ -9,11 +9,25 @@
 #include "npp/menu_cmd_id.h"
 
 #include "afxvisualmanagerofficexp.h"
-
+#include "afxdockingmanager.h"
 
 #ifdef _DEBUG
     #define new DEBUG_NEW
 #endif
+
+
+class SchemeItemContext :
+    public NonCopyable
+{
+public:
+    SchemeItemContext(SchemeTemplate* schemeTemplate) :
+        m_schemeTemplate(schemeTemplate)
+    {};
+
+private:
+    SchemeTemplate* const m_schemeTemplate;
+};
+
 
 BEGIN_MESSAGE_MAP(PluginFrame, CFrameWndEx)
     ON_WM_CREATE()
@@ -44,7 +58,7 @@ PluginFrame::PluginFrame(PluginInfo const& info) :
 
     if (!m_tracesParserProvider.Create(tstring(pluginConfigDir)))
         MessageBox(TEXT("Failed to load traces templates"), m_info.name.c_str(), MB_OK | MB_ICONERROR);
-
+    
     // Чисто парсер потестить
     /*{
         TracesParser parser = m_tracesParserProvider.GetParser(0);
@@ -103,6 +117,20 @@ int PluginFrame::OnCreate(LPCREATESTRUCT createStruct)
     
     SetIcon(smallIcon, false);
     SetIcon(bigIcon, true);
+
+    EnableDocking(CBRS_ALIGN_ANY);
+
+    CSmartDockingInfo info;
+    CDockingManager::SetSmartDockingParams(info);
+    // enable Visual Studio 2005 style docking window behavior
+    CDockingManager::SetDockingMode(DT_SMART);
+    // enable Visual Studio 2005 style docking window auto-hide behavior
+    EnableAutoHidePanes(CBRS_ALIGN_ANY);
+
+    // Чисто CDockablePane потестить
+    BOOL s = m_pane.Create(TEXT("dasdsadas"), this, CRect(0, 0, 200, 200), TRUE, 150, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_RIGHT | CBRS_FLOAT_MULTI);
+    m_pane.EnableDocking(CBRS_ALIGN_ANY);
+    DockPane(&m_pane);
 
     return 0;
 }

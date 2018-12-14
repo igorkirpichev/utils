@@ -2,10 +2,12 @@
 
 #include "scheme.h"
 #include "helpers/string.h"
+#include "helpers/non_copyable.h"
 #include "traces_parser_provider.h"
 
 #include <afxwin.h>
 #include <afxframewndex.h>
+#include <afxdockablepane.h>
 
 struct PluginInfo
 {
@@ -16,6 +18,7 @@ struct PluginInfo
 };
 
 class PluginFrame :
+    public NonCopyable,
     public CFrameWndEx
 {
 public:
@@ -24,10 +27,6 @@ public:
 
 protected:
     DECLARE_MESSAGE_MAP()
-
-private:
-    PluginFrame(PluginFrame const&) = delete;
-    PluginFrame& operator=(PluginFrame const&) = delete;
 
 private:
     afx_msg int OnCreate(LPCREATESTRUCT createStruct);
@@ -44,4 +43,6 @@ private:
     PluginInfo const        m_info;
     TracesParserProvider    m_tracesParserProvider;
     std::unique_ptr<Scheme> m_scheme;
+
+    CDockablePane m_pane;
 };

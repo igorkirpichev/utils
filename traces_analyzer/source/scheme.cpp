@@ -14,17 +14,6 @@
 #define XML_ATTR_TEMPLATE_NAME	    "name"
 #define XML_ATTR_TEMPLATE_CLASS_ID  "class_id"
 
-SchemeItem::SchemeItem(std::unique_ptr<SchemeTemplate>&& schemeTemplate) :
-    m_schemeTemplate(std::move(schemeTemplate)),
-    m_enabled(true)
-{
-}
-
-bool SchemeItem::IsEnabled() const
-{
-    return m_enabled;
-}
-
 bool Scheme::Load(tstring const& filePath)
 {
     ASSERT(!filePath.empty());
@@ -41,7 +30,7 @@ bool Scheme::Load(tstring const& filePath)
         if (!rootNode)
             return false;
 
-        std::vector<SchemeItem> schemeItems;
+        SchemeTemplates schemeTemplates;
 
         for (TiXmlElement* templateNode = rootNode->FirstChildElement(XML_TAG_TEMPLATE);
             templateNode; templateNode = templateNode->NextSiblingElement(XML_TAG_TEMPLATE))
@@ -51,11 +40,11 @@ bool Scheme::Load(tstring const& filePath)
                 return false;
 
             ASSERT(schemeTemplate);
-            
-            schemeItems.emplace_back(std::move(schemeTemplate));
+
+            schemeTemplates.emplace_back(std::move(schemeTemplate));
         }
 
-        m_items = schemeItems;
+        m_schemeTemplates.swap(schemeTemplates);
         m_fileName = filePath;
         return true;
     }
@@ -166,12 +155,12 @@ tstring Scheme::GetDisplayFileName() const
     return m_fileName.substr(m_fileName.find_last_of(TEXT("/\\")) + 1);
 }
 
-size_t Scheme::GetCountSchemeItems() const
+size_t Scheme::GetCountSchemeTemplates() const
 {
-    return m_items.size();
+    return m_schemeTemplates.size();
 }
 
-SchemeItem const& Scheme::GetSchemeItem(size_t i) const
+SchemeTemplate* Scheme::GetSchemeTemplate(size_t i) const
 {
-    return m_items[i];
+    return m_schemeTemplates[i].get();
 }
