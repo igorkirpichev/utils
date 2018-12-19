@@ -9,24 +9,11 @@
 #include "npp/menu_cmd_id.h"
 
 #include "afxvisualmanagerofficexp.h"
-#include "afxdockingmanager.h"
+//#include "afxdockingmanager.h"
 
 #ifdef _DEBUG
     #define new DEBUG_NEW
 #endif
-
-
-class SchemeItemContext :
-    public NonCopyable
-{
-public:
-    SchemeItemContext(SchemeTemplate* schemeTemplate) :
-        m_schemeTemplate(schemeTemplate)
-    {};
-
-private:
-    SchemeTemplate* const m_schemeTemplate;
-};
 
 
 BEGIN_MESSAGE_MAP(PluginFrame, CFrameWndEx)
@@ -108,7 +95,7 @@ int PluginFrame::OnCreate(LPCREATESTRUCT createStruct)
     if (CFrameWndEx::OnCreate(createStruct) == -1)
         return -1;
 
-    CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CMFCVisualManagerOfficeXP));
+    //CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CMFCVisualManagerOfficeXP));
     RedrawWindow(nullptr, nullptr, RDW_ALLCHILDREN | RDW_INVALIDATE | RDW_UPDATENOW | RDW_FRAME | RDW_ERASE);
 
     HICON const smallIcon   = reinterpret_cast<HICON>(::GetClassLongPtrW(m_info.npp, GCLP_HICONSM));
@@ -118,20 +105,9 @@ int PluginFrame::OnCreate(LPCREATESTRUCT createStruct)
     SetIcon(smallIcon, false);
     SetIcon(bigIcon, true);
 
-    EnableDocking(CBRS_ALIGN_ANY);
-
-    CSmartDockingInfo info;
-    CDockingManager::SetSmartDockingParams(info);
-    // enable Visual Studio 2005 style docking window behavior
     CDockingManager::SetDockingMode(DT_SMART);
-    // enable Visual Studio 2005 style docking window auto-hide behavior
     EnableAutoHidePanes(CBRS_ALIGN_ANY);
-
-    // Чисто CDockablePane потестить
-    BOOL s = m_pane.Create(TEXT("dasdsadas"), this, CRect(0, 0, 200, 200), TRUE, 150, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_RIGHT | CBRS_FLOAT_MULTI);
-    m_pane.EnableDocking(CBRS_ALIGN_ANY);
-    DockPane(&m_pane);
-
+    
     return 0;
 }
 
@@ -139,7 +115,7 @@ void PluginFrame::OnClose()
 {
     if (SaveModifiedScheme())
     {
-        m_scheme.reset(nullptr);
+        m_schemeContext.reset(nullptr);
         CFrameWndEx::OnClose();
     }
 }
@@ -161,7 +137,7 @@ void PluginFrame::OnFileNew()
     return;
 
     if (SaveModifiedScheme())
-        m_scheme.reset(new Scheme());
+        m_schemeContext.reset(new SchemeContext(this));
 }
 
 void PluginFrame::OnFileOpen()
@@ -177,15 +153,15 @@ void PluginFrame::OnFileOpen()
         
         //if (dialog.DoModal() == IDOK)
         {
-            std::unique_ptr<Scheme> newScheme(new Scheme());
-            if (newScheme->Load(TEXT("D:\\scheme.xml") /*dialog.GetPathName().GetBuffer()*/))
-                m_scheme = std::move(newScheme);
+            std::unique_ptr<SchemeContext> newSchemeContext(new SchemeContext(this));
+            if (newSchemeContext->Create(TEXT("D:\\scheme.xml") /*dialog.GetPathName().GetBuffer()*/))
+                m_schemeContext = std::move(newSchemeContext);
             else
                 MessageBox(TEXT("Failed to open analyzes scheme"), m_info.name.c_str(), MB_OK | MB_ICONERROR);
         }
     }
 
-    if (!m_scheme)
+    if (!m_schemeContext)
         DestroyWindow();
 }
 
@@ -197,11 +173,12 @@ void PluginFrame::OnFileSave()
 
 bool PluginFrame::SaveModifiedScheme()
 {
-    if (m_scheme)
+    if (m_schemeContext)
     {
-        if (m_scheme->IsModified())
+        Scheme const& scheme = m_schemeContext->GetScheme();
+        if (scheme.IsModified())
         {
-            tstring const displayFileName = m_scheme->GetDisplayFileName();
+            tstring const displayFileName = scheme.GetDisplayFileName();
 
             tstring messageText(TEXT("You want to save changes to the file \""));
             messageText += displayFileName.empty() ? SCHEME_DEFAULT_FILE_NAME : displayFileName;
@@ -239,9 +216,10 @@ bool PluginFrame::SaveScheme()
     MessageBox(TEXT("Feature not available yet"), m_info.name.c_str(), MB_OK | MB_ICONINFORMATION);
     return false;
 
-    if (m_scheme)
+    if (m_schemeContext)
     {
-        tstring const fileName = m_scheme->GetFileName();
+        Scheme& scheme = m_schemeContext->GetScheme();
+        tstring const fileName = scheme.GetFileName();
 
         bool result = false;
         if (fileName.empty())
@@ -254,12 +232,12 @@ bool PluginFrame::SaveScheme()
                 SCHEME_DEFAULT_FILE_NAME_FILTER);
 
             if (dialog.DoModal() == IDOK)
-                result = m_scheme->Save(dialog.GetPathName().GetBuffer());
+                result = scheme.Save(dialog.GetPathName().GetBuffer());
             else
                 return false;
         }
         else
-            result = m_scheme->Save();
+            result = scheme.Save();
 
         if (!result)
             MessageBox(TEXT("Failed to save analyzes scheme"), m_info.name.c_str(), MB_OK | MB_ICONERROR);

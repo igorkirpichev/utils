@@ -1,13 +1,13 @@
 #pragma once
 
-#include "scheme.h"
+#include "traces_parser_provider.h"
+#include "scheme_context.h"
+
 #include "helpers/string.h"
 #include "helpers/non_copyable.h"
-#include "traces_parser_provider.h"
 
 #include <afxwin.h>
 #include <afxframewndex.h>
-#include <afxdockablepane.h>
 
 struct PluginInfo
 {
@@ -40,9 +40,7 @@ private:
     bool SaveScheme();
 
 private:
-    PluginInfo const        m_info;
-    TracesParserProvider    m_tracesParserProvider;
-    std::unique_ptr<Scheme> m_scheme;
-
-    CDockablePane m_pane;
+    PluginInfo const                m_info;
+    TracesParserProvider            m_tracesParserProvider;
+    std::unique_ptr<SchemeContext>  m_schemeContext;
 };

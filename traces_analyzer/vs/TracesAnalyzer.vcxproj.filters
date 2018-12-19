@@ -28,6 +28,9 @@
     <ClCompile Include="..\source\scheme_template.cpp">
       <Filter>source</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\scheme_context.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\helpers\check.h">
@@ -74,6 +77,9 @@
     </ClInclude>
     <ClInclude Include="..\source\helpers\non_copyable.h">
       <Filter>source\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\scheme_context.h">
+      <Filter>source</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

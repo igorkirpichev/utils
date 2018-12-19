@@ -9,6 +9,8 @@
 #define SCHEME_DEFAULT_FILE_NAME        TEXT("New scheme")
 #define SCHEME_DEFAULT_FILE_NAME_FILTER TEXT("Traces analyzer scheme (*.xml) | *.xml|")
 
+class PluginFrame;
+
 class Scheme
 {
 private:
@@ -33,4 +35,3 @@ private:
     tstring         m_fileName;
     SchemeTemplates m_schemeTemplates;
 };
-
