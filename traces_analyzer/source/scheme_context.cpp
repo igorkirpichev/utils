@@ -8,6 +8,7 @@
 
 BEGIN_MESSAGE_MAP(ResultDockablePane, CDockablePane)
     ON_WM_CREATE()
+    ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 int ResultDockablePane::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -15,9 +16,30 @@ int ResultDockablePane::OnCreate(LPCREATESTRUCT lpCreateStruct)
     if (CDockablePane::OnCreate(lpCreateStruct) == -1)
         return -1;
 
+    // TODO:  Add your specialized creation code here
+    CRect clientRect;
+    GetClientRect(&clientRect);
 
+    if (!m_list.Create(WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_VSCROLL
+        | LVS_REPORT, clientRect, this, 0))
+    {
+        return -1;
+    }
+
+    m_list.SendMessage(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 
     return 0;
+}
+
+void ResultDockablePane::OnSize(UINT nType, int cx, int cy)
+{
+    CDockablePane::OnSize(nType, cx, cy);
+
+    // TODO: Add your message handler code here
+    CRect clientRect;
+    GetClientRect(&clientRect);
+
+    m_list.SetWindowPos(NULL, clientRect.left, clientRect.top, clientRect.Width(), clientRect.Height(), SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
 ViewPanel::ViewPanel(PluginFrame* parentWnd, SchemeTemplate* schemeTemplate) :

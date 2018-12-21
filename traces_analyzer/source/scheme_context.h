@@ -5,6 +5,7 @@
 #include "helpers/string.h"
 
 #include <afxdockablepane.h>
+#include <afxlistctrl.h>
 
 #include <vector>
 
@@ -16,11 +17,12 @@ class ResultDockablePane :
         
 protected:
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
+    afx_msg void OnSize(UINT nType, int cx, int cy);
 
     DECLARE_MESSAGE_MAP()
 
 private:
-    //CListCtrl
+    CMFCListCtrl m_list;
 };
 
 class ViewPanel
