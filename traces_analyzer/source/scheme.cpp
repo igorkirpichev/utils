@@ -2,6 +2,10 @@
 
 #include <afxwin.h>
 
+#ifdef _DEBUG
+    #define new DEBUG_NEW
+#endif
+
 // XML tags
 #define XML_TAG_ROOT			    "scheme_templates_root"
 #define XML_TAG_TEMPLATE		    "template"

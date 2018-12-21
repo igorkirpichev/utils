@@ -9,7 +9,6 @@
 #include "npp/menu_cmd_id.h"
 
 #include "afxvisualmanagerofficexp.h"
-//#include "afxdockingmanager.h"
 
 #ifdef _DEBUG
     #define new DEBUG_NEW
