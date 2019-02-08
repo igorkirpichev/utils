@@ -19,6 +19,7 @@ BEGIN_MESSAGE_MAP(PluginFrame, CFrameWndEx)
     ON_WM_CREATE()
     ON_WM_CLOSE()
     ON_WM_WINDOWPOSCHANGED()
+    ON_REGISTERED_MESSAGE(AFX_WM_RESETTOOLBAR, OnToolbarReset)
     ON_COMMAND(ID_FILE_NEW,     &PluginFrame::OnFileNew)
     ON_COMMAND(ID_FILE_OPEN,    &PluginFrame::OnFileOpen)
     ON_COMMAND(ID_FILE_SAVE,    &PluginFrame::OnFileSave)
@@ -37,7 +38,7 @@ PluginFrame::PluginFrame(PluginInfo const& info) :
     
     WIN_CHECK(Create(NULL, m_info.name.c_str(), WS_OVERLAPPEDWINDOW | FWS_ADDTOTITLE, windowRect, NULL,
         MAKEINTRESOURCE(IDR_MAINFRAME)));
-
+    
     // Путь потом будем брать из настроек
     TCHAR pluginConfigDir[MAX_PATH] = { 0 };
     LRESULT const result = ::SendMessage(m_info.npp, NPPM_GETPLUGINSCONFIGDIR, MAX_PATH, (LPARAM)&pluginConfigDir);
@@ -104,6 +105,21 @@ int PluginFrame::OnCreate(LPCREATESTRUCT createStruct)
     SetIcon(smallIcon, false);
     SetIcon(bigIcon, true);
 
+    if (!m_toolbar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC))
+        return -1;
+    if (!m_toolbar.LoadToolBar(IDR_MAINFRAME))
+        return -1;
+    
+    //m_comboTracesParsers.SetStyle(WS_DLGFRAME);
+
+    CMFCToolBarComboBoxButton deviceCombo(ID_TRACES_PARSERS, -1, CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP, 300);
+    m_toolbar.ReplaceButton(ID_TRACES_PARSERS, deviceCombo, TRUE);
+            
+    m_toolbar.EnableDocking(CBRS_ALIGN_ANY);
+    EnableDocking(CBRS_ALIGN_ANY); 
+    DockPane(&m_toolbar);
+
+    
     CDockingManager::SetDockingMode(DT_SMART);
     EnableAutoHidePanes(CBRS_ALIGN_ANY);
     
@@ -128,6 +144,36 @@ void PluginFrame::OnWindowPosChanged(WINDOWPOS* wndPos)
     pApp->WriteProfileInt(REG_SECTION_FRAME, REG_ENTRY_FRAME_LAST_PLACE_TOP,    wndPos->y);
     pApp->WriteProfileInt(REG_SECTION_FRAME, REG_ENTRY_FRAME_LAST_PLACE_WIDTH,  wndPos->cx);
     pApp->WriteProfileInt(REG_SECTION_FRAME, REG_ENTRY_FRAME_LAST_PLACE_HEIGHT, wndPos->cy);
+}
+
+LRESULT PluginFrame::OnToolbarReset(WPARAM wp, LPARAM)
+{
+	UINT uiToolBarId = (UINT)wp;
+
+	switch (uiToolBarId)
+	{
+		case IDR_MAINFRAME:
+		{
+			CMFCToolBarComboBoxButton deviceCombo(ID_TRACES_PARSERS, -1, CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP, 300);
+			deviceCombo.AddItem(TEXT("ITEM"));
+			m_toolbar.ReplaceButton(ID_TRACES_PARSERS, deviceCombo, TRUE);
+
+			//CMFCToolBarEditBoxButton nColumnsEdit(
+			//	ID_DummyButtonForEditBox,
+			//	GetCmdMgr()->GetCmdImage(ID_DummyButtonForEditBox, FALSE));
+			////nColumnsEdit.SetContextMenuID(ID_DummyButtonForEditBox);
+			//nColumnsEdit.CanBeStretched();
+			//nColumnsEdit.HaveHotBorder();
+			//nColumnsEdit.SetContents(_T("edit box button"));
+			//nColumnsEdit.SetFlatMode(true);
+			//nColumnsEdit.SetStyle(TBBS_PRESSED);
+			//int nReplaced = m_wndToolBar.ReplaceButton(ID_DummyButtonForEditBox, nColumnsEdit);
+			//nColumnsEdit.EnableWindow(TRUE);
+
+			break;
+			}
+	}
+	return 0;
 }
 
 void PluginFrame::OnFileNew()

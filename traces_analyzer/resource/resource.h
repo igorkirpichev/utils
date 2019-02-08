@@ -94,6 +94,8 @@
 #define AFX_IDD_PROPPAGE_COLOR          32257
 #define AFX_IDD_PROPPAGE_FONT           32258
 #define AFX_IDD_PROPPAGE_PICTURE        32259
+#define ID_TRACES_PARSERS               40001
+#define ID_STOP                         40002
 #define AFX_IDS_APP_TITLE               0xE000
 #define AFX_IDS_IDLEMESSAGE             0xE001
 #define AFX_IDS_HELPMODEMESSAGE         0xE002
@@ -524,8 +526,8 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        106
-#define _APS_NEXT_COMMAND_VALUE         40001
+#define _APS_NEXT_RESOURCE_VALUE        108
+#define _APS_NEXT_COMMAND_VALUE         40003
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

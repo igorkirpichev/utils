@@ -8,6 +8,7 @@
 
 #include <afxwin.h>
 #include <afxframewndex.h>
+#include <afxtoolbarcomboboxbutton.h>
 
 struct PluginInfo
 {
@@ -35,11 +36,16 @@ private:
     afx_msg void OnFileNew();
     afx_msg void OnFileOpen();
     afx_msg void OnFileSave();
+	
+	LRESULT OnToolbarReset(WPARAM wp, LPARAM);
 
     bool SaveModifiedScheme();
     bool SaveScheme();
 
 private:
+    CMFCToolBar                     m_toolbar;
+    CMFCToolBarComboBoxButton       m_comboTracesParsers;
+
     PluginInfo const                m_info;
     TracesParserProvider            m_tracesParserProvider;
     std::unique_ptr<SchemeContext>  m_schemeContext;

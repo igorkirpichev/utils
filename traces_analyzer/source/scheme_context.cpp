@@ -20,8 +20,7 @@ int ResultDockablePane::OnCreate(LPCREATESTRUCT lpCreateStruct)
     CRect clientRect;
     GetClientRect(&clientRect);
 
-    if (!m_list.Create(WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_VSCROLL
-        | LVS_REPORT, clientRect, this, 0))
+    if (!m_list.Create(WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_VSCROLL | LVS_REPORT, clientRect, this, 0))
     {
         return -1;
     }
@@ -50,7 +49,7 @@ ViewPanel::ViewPanel(PluginFrame* parentWnd, SchemeTemplate* schemeTemplate) :
     tstring const caption = schemeTemplate->GetName();
 
     BOOL const result = m_pane.Create(
-        caption.c_str(), m_parentWnd, CRect(0, 0, 200, 200), TRUE, 0, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_RIGHT | CBRS_FLOAT_MULTI);
+        caption.c_str(), m_parentWnd, CRect(0, 0, 200, 200), TRUE, 0, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_TOP | CBRS_FLOAT_MULTI);
 
     if (result)
     {
@@ -92,8 +91,11 @@ Scheme& SchemeContext::GetScheme()
 void SchemeContext::UpdateViewPanels()
 {
     m_viewPanels.clear();
+    
+    size_t const templatesCount = m_scheme.GetCountSchemeTemplates();
+    m_viewPanels.reserve(templatesCount);
 
-    for (size_t i = 0; i < m_scheme.GetCountSchemeTemplates(); ++i)
+    for (size_t i = 0; i < templatesCount; ++i)
     {
         m_viewPanels.emplace_back(new ViewPanel(m_parentWnd, m_scheme.GetSchemeTemplate(i)));
     }

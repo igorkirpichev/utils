@@ -51,6 +51,9 @@
   <ItemGroup>
     <ResourceCompile Include="..\resource\TracesAnalyzer.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\resource\toolbar.bmp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{8F5CEF6C-B804-429C-AF93-F34C9017A580}</ProjectGuid>

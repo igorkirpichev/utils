@@ -107,4 +107,9 @@
       <Filter>resource</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\resource\toolbar.bmp">
+      <Filter>resource</Filter>
+    </Image>
+  </ItemGroup>
 </Project>
