@@ -31,13 +31,16 @@ protected:
 
 private:
     afx_msg int OnCreate(LPCREATESTRUCT createStruct);
-    afx_msg void OnClose();
     afx_msg void OnWindowPosChanged(WINDOWPOS* wndPos);
+	afx_msg void OnUpdateTracesParserComboBox(CCmdUI *pCmdUI);
+    
+	afx_msg void OnClose();
     afx_msg void OnFileNew();
     afx_msg void OnFileOpen();
     afx_msg void OnFileSave();
 	
 	LRESULT OnToolbarReset(WPARAM wp, LPARAM);
+	void OnToolbarMenuButtonClicked();
 
     bool SaveModifiedScheme();
     bool SaveScheme();
