@@ -1,6 +1,7 @@
 #include "resource.h"
 #include "plugin_frame.h"
 #include "registry.h"
+#include "scintilla.h"
 
 #include "helpers/check.h"
 
@@ -21,10 +22,11 @@ BEGIN_MESSAGE_MAP(PluginFrame, CFrameWndEx)
     ON_WM_WINDOWPOSCHANGED()
     ON_REGISTERED_MESSAGE(AFX_WM_RESETTOOLBAR,	&PluginFrame::OnToolbarReset)
 	ON_UPDATE_COMMAND_UI(ID_TRACES_PARSERS,		&PluginFrame::OnUpdateTracesParserComboBox)
+    ON_UPDATE_COMMAND_UI(ID_PROCESS_START,      &PluginFrame::OnUpdateProcessStartButton)
     ON_COMMAND(ID_FILE_NEW,						&PluginFrame::OnFileNew)
     ON_COMMAND(ID_FILE_OPEN,					&PluginFrame::OnFileOpen)
     ON_COMMAND(ID_FILE_SAVE,					&PluginFrame::OnFileSave)
-	ON_COMMAND(ID_TRACES_PARSERS,				&PluginFrame::OnToolbarMenuButtonClicked)
+	ON_COMMAND(ID_PROCESS_START,				&PluginFrame::OnToolbarProcesStart)
 END_MESSAGE_MAP()
 
 PluginFrame::PluginFrame(PluginInfo const& info) :
@@ -47,44 +49,6 @@ PluginFrame::PluginFrame(PluginInfo const& info) :
     
     WIN_CHECK(Create(NULL, m_info.name.c_str(), WS_OVERLAPPEDWINDOW | FWS_ADDTOTITLE, windowRect, NULL,
         MAKEINTRESOURCE(IDR_MAINFRAME)));
-    
-    // ×טסעמ ןאנסונ ןמעוסעטעü
-    /*{
-        TracesParser parser = m_tracesParserProvider.GetParser(0);
-
-        int currentEdit = 0;
-
-        ::SendMessage(m_info.npp, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&currentEdit);
-        HWND const scintilla = currentEdit ? m_info.scintillaSecond : m_info.scintillaMain;
-        ASSERT(scintilla);
-
-        std::vector<tstring> lines;
-
-        LRESULT const lineCount = ::SendMessage(scintilla, SCI_GETLINECOUNT, 0, 0);
-        std::vector<char> buffer(1000);
-        for (int i = 0; i < lineCount; ++i)
-        {
-            memset(buffer.data(), 0, buffer.size());
-            if (!::SendMessage(scintilla, SCI_GETLINE, i, (LPARAM)buffer.data()))
-                continue;
-
-            lines.push_back(ToTString(buffer.data()));
-        }
-
-        TraceDescription traceDescription = { 0 };
-        tstring::const_iterator traceTextBegin;
-
-        DWORD begin = ::GetTickCount();
-
-        for (tstring const& line : lines)
-        {
-            parser.Parse(line, traceDescription, traceTextBegin, false);
-        }
-
-        DWORD ens = ::GetTickCount() - begin;
-
-        int d = 0;
-    }*/
 }
 
 PluginFrame::~PluginFrame()
@@ -109,7 +73,7 @@ int PluginFrame::OnCreate(LPCREATESTRUCT createStruct)
 
     if (!m_toolbar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC))
         return -1;
-    if (!m_toolbar.LoadToolBar(IDR_MAINFRAME))
+    if (!m_toolbar.LoadToolBar(IDR_MAINFRAME, 0, 0, TRUE))
         return -1;
 
     m_toolbar.EnableDocking(CBRS_ALIGN_ANY);
@@ -146,9 +110,23 @@ void PluginFrame::OnUpdateTracesParserComboBox(CCmdUI *pCmdUI)
 {
 	if (pCmdUI->m_nID)
 	{
-		CMFCToolBarComboBoxButton* tracesParserComboBox = (CMFCToolBarComboBoxButton*)m_toolbar.GetButton(m_toolbar.CommandToIndex(pCmdUI->m_nID));
-		pCmdUI->Enable(!!tracesParserComboBox->GetCount());
+		CMFCToolBarComboBoxButton* tracesParserComboBox = 
+            dynamic_cast<CMFCToolBarComboBoxButton*>(m_toolbar.GetButton(m_toolbar.CommandToIndex(pCmdUI->m_nID)));
+        
+        bool const enable = !!tracesParserComboBox->GetCount();
+        if (!enable)
+            tracesParserComboBox->SetText(TEXT("No parsers"));
+
+		pCmdUI->Enable(enable);
 	}
+}
+
+void PluginFrame::OnUpdateProcessStartButton(CCmdUI *pCmdUI)
+{
+    CMFCToolBarComboBoxButton* tracesParserComboBox = 
+        dynamic_cast<CMFCToolBarComboBoxButton*>(m_toolbar.GetButton(m_toolbar.CommandToIndex(ID_TRACES_PARSERS)));
+    
+    pCmdUI->Enable(!!tracesParserComboBox->GetCount());
 }
 
 LRESULT PluginFrame::OnToolbarReset(WPARAM wp, LPARAM)
@@ -162,7 +140,8 @@ LRESULT PluginFrame::OnToolbarReset(WPARAM wp, LPARAM)
 			m_toolbar.ReplaceButton(ID_TRACES_PARSERS,
 				CMFCToolBarComboBoxButton(ID_TRACES_PARSERS, -1, CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP, 200));
 
-			CMFCToolBarComboBoxButton* tracesParserComboBox = (CMFCToolBarComboBoxButton*)m_toolbar.GetButton(m_toolbar.CommandToIndex(ID_TRACES_PARSERS));
+			CMFCToolBarComboBoxButton* tracesParserComboBox = 
+                dynamic_cast<CMFCToolBarComboBoxButton*>(m_toolbar.GetButton(m_toolbar.CommandToIndex(ID_TRACES_PARSERS)));
 
 			tracesParserComboBox->EnableWindow(true);
 			tracesParserComboBox->SetCenterVert();
@@ -181,10 +160,6 @@ LRESULT PluginFrame::OnToolbarReset(WPARAM wp, LPARAM)
 					tracesParserComboBox->AddItem(parserName.c_str(), static_cast<DWORD_PTR>(i));
 				}
 			}
-			else
-			{
-				tracesParserComboBox->SetText(TEXT("No parsers"));
-			}
 
 			tracesParserComboBox->SelectItem(0);
 			
@@ -196,9 +171,35 @@ LRESULT PluginFrame::OnToolbarReset(WPARAM wp, LPARAM)
 	return 0;
 }
 
-void PluginFrame::OnToolbarMenuButtonClicked()
+void PluginFrame::OnToolbarProcesStart()
 {
-	
+    if (m_schemeContext)
+    {
+        int currentEdit;
+        ::SendMessage(m_info.npp, NPPM_GETCURRENTSCINTILLA, 0, reinterpret_cast<LPARAM>(&currentEdit));
+        Scintilla const scintilla((currentEdit == 0) ? m_info.scintillaMain : m_info.scintillaSecond);
+
+        CMFCToolBarComboBoxButton* tracesParserComboBox =
+            dynamic_cast<CMFCToolBarComboBoxButton*>(m_toolbar.GetButton(m_toolbar.CommandToIndex(ID_TRACES_PARSERS)));
+        
+        if (tracesParserComboBox->GetCount() == 0)
+        {
+            MessageBox(TEXT("Parsers are not loaded"), m_info.name.c_str(), MB_OK | MB_ICONERROR);
+            return;
+        }
+        
+        int const parserIndex = tracesParserComboBox->GetItemData(tracesParserComboBox->GetCurSel());
+        TracesParser const tracesParser = m_tracesParserProvider.GetParser(parserIndex);
+
+        bool result = m_schemeContext->StartAnalysis(scintilla, tracesParser);
+
+        if (!result)
+            MessageBox(TEXT("Åhe analysis process is already in progress"), m_info.name.c_str(), MB_OK | MB_ICONINFORMATION);
+    }
+    else
+    {
+        MessageBox(TEXT("Analysis scheme not loaded"), m_info.name.c_str(), MB_OK | MB_ICONERROR);
+    }
 }
 
 void PluginFrame::OnFileNew()
@@ -207,7 +208,10 @@ void PluginFrame::OnFileNew()
     return;
 
     if (SaveModifiedScheme())
+    {
         m_schemeContext.reset(new SchemeContext(this));
+        UpdateCaption();
+    }
 }
 
 void PluginFrame::OnFileOpen()
@@ -225,7 +229,10 @@ void PluginFrame::OnFileOpen()
         {
             std::unique_ptr<SchemeContext> newSchemeContext(new SchemeContext(this));
             if (newSchemeContext->Create(TEXT("D:\\scheme.xml") /*dialog.GetPathName().GetBuffer()*/))
+            {
                 m_schemeContext = std::move(newSchemeContext);
+                UpdateCaption();
+            }
             else
                 MessageBox(TEXT("Failed to open analyzes scheme"), m_info.name.c_str(), MB_OK | MB_ICONERROR);
         }
@@ -317,4 +324,23 @@ bool PluginFrame::SaveScheme()
     {
         return false;
     }
+}
+
+void PluginFrame::UpdateCaption()
+{
+    tstring caption;
+    
+    if (m_schemeContext)
+    {
+        tstring schemeName = m_schemeContext->GetScheme().GetDisplayFileName();
+        if (schemeName.empty())
+            schemeName = SCHEME_DEFAULT_FILE_NAME;
+
+        caption += schemeName;
+        caption += TEXT(" - ");
+    }
+
+    caption += m_info.name;
+
+    SetWindowText(caption.c_str());
 }

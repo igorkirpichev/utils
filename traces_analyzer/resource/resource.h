@@ -96,6 +96,7 @@
 #define AFX_IDD_PROPPAGE_PICTURE        32259
 #define ID_TRACES_PARSERS               40001
 #define ID_STOP                         40002
+#define ID_PROCESS_START                40002
 #define AFX_IDS_APP_TITLE               0xE000
 #define AFX_IDS_IDLEMESSAGE             0xE001
 #define AFX_IDS_HELPMODEMESSAGE         0xE002

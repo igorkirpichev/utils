@@ -1,6 +1,9 @@
 #pragma once
 
 #include "scheme.h"
+#include "scintilla.h"
+#include "traces_parser_provider.h"
+#include "analysis_processor.h"
 
 #include "helpers/string.h"
 
@@ -41,16 +44,23 @@ class SchemeContext
 public:
     SchemeContext(PluginFrame* parentWnd);
 
+private:
+    typedef std::vector<std::unique_ptr<ViewPanel>> ViewPanels;
+
 public:
     bool Create(tstring const& filePath);
     Scheme& GetScheme();
+
+    bool StartAnalysis(Scintilla const& scintillaView, TracesParser const& tracesParser);
 
 private:
     void UpdateViewPanels();
 
 private:
-    PluginFrame*            m_parentWnd;
+    PluginFrame*        m_parentWnd;
 
-    Scheme                  m_scheme;
-    std::vector<std::unique_ptr<ViewPanel>>  m_viewPanels;
+    AnalysisProcessor   m_analysisProcessor;
+
+    Scheme              m_scheme;
+    ViewPanels          m_viewPanels;
 };

@@ -24,6 +24,7 @@
     <ClInclude Include="..\include\npp\plugin_interface.h" />
     <ClInclude Include="..\include\npp\scintilla.h" />
     <ClInclude Include="..\resource\resource.h" />
+    <ClInclude Include="..\source\analysis_processor.h" />
     <ClInclude Include="..\source\helpers\check.h" />
     <ClInclude Include="..\source\helpers\non_copyable.h" />
     <ClInclude Include="..\source\helpers\string.h" />
@@ -33,16 +34,19 @@
     <ClInclude Include="..\source\scheme.h" />
     <ClInclude Include="..\source\scheme_context.h" />
     <ClInclude Include="..\source\scheme_template.h" />
+    <ClInclude Include="..\source\scintilla.h" />
     <ClInclude Include="..\source\tinyxml\tinyxml.h" />
     <ClInclude Include="..\source\traces_parser_provider.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\source\analysis_processor.cpp" />
     <ClCompile Include="..\source\main.cpp" />
     <ClCompile Include="..\source\plugin_application.cpp" />
     <ClCompile Include="..\source\plugin_frame.cpp" />
     <ClCompile Include="..\source\scheme.cpp" />
     <ClCompile Include="..\source\scheme_context.cpp" />
     <ClCompile Include="..\source\scheme_template.cpp" />
+    <ClCompile Include="..\source\scintilla.cpp" />
     <ClCompile Include="..\source\tinyxml\tinyxml.cpp" />
     <ClCompile Include="..\source\tinyxml\tinyxmlerror.cpp" />
     <ClCompile Include="..\source\tinyxml\tinyxmlparser.cpp" />

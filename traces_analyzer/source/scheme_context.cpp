@@ -88,6 +88,17 @@ Scheme& SchemeContext::GetScheme()
     return m_scheme;
 }
 
+bool SchemeContext::StartAnalysis(Scintilla const& scintillaView, TracesParser const& tracesParser)
+{
+    AnalysisProcessContext processContext = {
+        scintillaView,
+        tracesParser,
+        m_scheme 
+    };
+
+    return m_analysisProcessor.StartProcess(processContext);
+}
+
 void SchemeContext::UpdateViewPanels()
 {
     m_viewPanels.clear();

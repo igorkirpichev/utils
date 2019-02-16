@@ -31,6 +31,12 @@
     <ClCompile Include="..\source\scheme_context.cpp">
       <Filter>source</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\scintilla.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\analysis_processor.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\helpers\check.h">
@@ -79,6 +85,12 @@
       <Filter>source\helpers</Filter>
     </ClInclude>
     <ClInclude Include="..\source\scheme_context.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\scintilla.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\analysis_processor.h">
       <Filter>source</Filter>
     </ClInclude>
   </ItemGroup>
