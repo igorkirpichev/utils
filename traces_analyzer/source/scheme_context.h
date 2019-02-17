@@ -51,7 +51,10 @@ public:
     bool Create(tstring const& filePath);
     Scheme& GetScheme();
 
-    bool StartAnalysis(Scintilla const& scintillaView, TracesParser const& tracesParser);
+    bool StartAnalysis(
+        Scintilla const& scintillaView,
+        TracesParser const& tracesParser,
+        IAnalysisProcessorFrameCallback* frameCallback);
 
 private:
     void UpdateViewPanels();

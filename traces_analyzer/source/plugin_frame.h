@@ -10,6 +10,17 @@
 #include <afxframewndex.h>
 #include <afxtoolbarcomboboxbutton.h>
 
+namespace StartProcessButtonState
+{
+
+    enum Enum
+    {
+        Start = 0,
+        Cancel
+    };
+
+}
+
 struct PluginInfo
 {
     HWND npp;
@@ -19,8 +30,9 @@ struct PluginInfo
 };
 
 class PluginFrame :
-    public NonCopyable,
-    public CFrameWndEx
+    public CFrameWndEx,
+    public IAnalysisProcessorFrameCallback,
+    public NonCopyable
 {
 public:
     PluginFrame(PluginInfo const& info);
@@ -30,9 +42,17 @@ protected:
     DECLARE_MESSAGE_MAP()
 
 private:
+    // implement IAnalysisProcessorFrameCallback
+    void OnStartProcess();
+    void OnFinishProcess();
+
+private:
+
     afx_msg int OnCreate(LPCREATESTRUCT createStruct);
     afx_msg void OnWindowPosChanged(WINDOWPOS* wndPos);
-	afx_msg void OnUpdateTracesParserComboBox(CCmdUI *pCmdUI);
+	
+    LRESULT OnUpdateToolbar(WPARAM wParam, LPARAM lParam);
+    afx_msg void OnUpdateTracesParserComboBox(CCmdUI *pCmdUI);
     afx_msg void OnUpdateProcessStartButton(CCmdUI *pCmdUI);
     
 	afx_msg void OnClose();
@@ -40,12 +60,12 @@ private:
     afx_msg void OnFileOpen();
     afx_msg void OnFileSave();
 	
-	LRESULT OnToolbarReset(WPARAM wp, LPARAM);
 	void OnToolbarProcesStart();
 
     bool SaveModifiedScheme();
     bool SaveScheme();
 
+	void ResetToolbar();
     void UpdateCaption();
 
 private:
@@ -55,4 +75,6 @@ private:
     PluginInfo const                m_info;
     TracesParserProvider            m_tracesParserProvider;
     std::unique_ptr<SchemeContext>  m_schemeContext;
+
+    StartProcessButtonState::Enum   m_startProcessButtonState;
 };

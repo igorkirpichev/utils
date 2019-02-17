@@ -7,11 +7,20 @@
 #include <thread>
 #include <atomic>
 
+class IAnalysisProcessorFrameCallback
+{
+public:
+    virtual void OnStartProcess() = 0;
+    virtual void OnFinishProcess() = 0;
+    // insert new cb 
+};
+
 struct AnalysisProcessContext
 {
-    Scintilla       scintillaView;
-    TracesParser    tracesParser;
-    Scheme&         scheme;
+    Scintilla                           scintillaView;
+    TracesParser                        tracesParser;
+    IAnalysisProcessorFrameCallback*    frameCallback;
+    Scheme&                             scheme;
 };
 
 class AnalysisProcessor

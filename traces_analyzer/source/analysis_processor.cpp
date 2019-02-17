@@ -26,7 +26,13 @@ void AnalysisProcessor::DoWork(AnalysisProcessor* parent, AnalysisProcessContext
 {
     parent->m_inProcess.store(true);
 
+    if (analysisProcessContext.frameCallback)
+        analysisProcessContext.frameCallback->OnStartProcess();
+
     Sleep(5000);
 
+    if (analysisProcessContext.frameCallback)
+        analysisProcessContext.frameCallback->OnFinishProcess();
+    
     parent->m_inProcess.store(false);
 }

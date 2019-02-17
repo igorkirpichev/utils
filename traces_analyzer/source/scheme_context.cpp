@@ -88,11 +88,15 @@ Scheme& SchemeContext::GetScheme()
     return m_scheme;
 }
 
-bool SchemeContext::StartAnalysis(Scintilla const& scintillaView, TracesParser const& tracesParser)
+bool SchemeContext::StartAnalysis(
+    Scintilla const& scintillaView,
+    TracesParser const& tracesParser,
+    IAnalysisProcessorFrameCallback* frameCallback)
 {
     AnalysisProcessContext processContext = {
         scintillaView,
         tracesParser,
+        frameCallback,
         m_scheme 
     };
 

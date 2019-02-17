@@ -10,27 +10,32 @@
 #include "npp/menu_cmd_id.h"
 
 #include "afxvisualmanagerofficexp.h"
+#include <afxpriv.h>
 
 #ifdef _DEBUG
     #define new DEBUG_NEW
 #endif
+
+// User windows message
+#define WM_UPDATE_TOOLBAR   WM_USER + 100
 
 
 BEGIN_MESSAGE_MAP(PluginFrame, CFrameWndEx)
     ON_WM_CREATE()
     ON_WM_CLOSE()
     ON_WM_WINDOWPOSCHANGED()
-    ON_REGISTERED_MESSAGE(AFX_WM_RESETTOOLBAR,	&PluginFrame::OnToolbarReset)
+    ON_MESSAGE(WM_UPDATE_TOOLBAR,               &PluginFrame::OnUpdateToolbar)
 	ON_UPDATE_COMMAND_UI(ID_TRACES_PARSERS,		&PluginFrame::OnUpdateTracesParserComboBox)
-    ON_UPDATE_COMMAND_UI(ID_PROCESS_START,      &PluginFrame::OnUpdateProcessStartButton)
+    ON_UPDATE_COMMAND_UI(ID_PROCESS_START_STOP, &PluginFrame::OnUpdateProcessStartButton)
     ON_COMMAND(ID_FILE_NEW,						&PluginFrame::OnFileNew)
     ON_COMMAND(ID_FILE_OPEN,					&PluginFrame::OnFileOpen)
     ON_COMMAND(ID_FILE_SAVE,					&PluginFrame::OnFileSave)
-	ON_COMMAND(ID_PROCESS_START,				&PluginFrame::OnToolbarProcesStart)
+	ON_COMMAND(ID_PROCESS_START_STOP,			&PluginFrame::OnToolbarProcesStart)
 END_MESSAGE_MAP()
 
 PluginFrame::PluginFrame(PluginInfo const& info) :
-    m_info(info)
+    m_info(info),
+    m_startProcessButtonState(StartProcessButtonState::Start)
 {
 	// Путь потом будем брать из настроек
 	TCHAR pluginConfigDir[MAX_PATH] = { 0 };
@@ -49,11 +54,35 @@ PluginFrame::PluginFrame(PluginInfo const& info) :
     
     WIN_CHECK(Create(NULL, m_info.name.c_str(), WS_OVERLAPPEDWINDOW | FWS_ADDTOTITLE, windowRect, NULL,
         MAKEINTRESOURCE(IDR_MAINFRAME)));
+
+    CMFCToolBar::GetImages()->Load(IDB_PROCESS_START, 0, TRUE);
+    CMFCToolBar::GetImages()->Load(IDB_PROCESS_CANCEL, 0, TRUE);
 }
 
 PluginFrame::~PluginFrame()
 {
-    //CMFCVisualManager::DestroyInstance();
+    CMFCToolBar::GetImages()->CleanUp();
+}
+
+void PluginFrame::OnStartProcess()
+{
+    m_startProcessButtonState = StartProcessButtonState::Cancel;
+
+    PostMessage(WM_UPDATE_TOOLBAR, 0, 0);
+}
+
+void PluginFrame::OnFinishProcess()
+{
+    m_startProcessButtonState = StartProcessButtonState::Start;
+
+    PostMessage(WM_UPDATE_TOOLBAR, 0, 0);
+}
+
+LRESULT PluginFrame::OnUpdateToolbar(WPARAM wParam, LPARAM lParam)
+{
+    m_toolbar.OnUpdateCmdUI(this, TRUE);
+
+    return 0;
 }
 
 int PluginFrame::OnCreate(LPCREATESTRUCT createStruct)
@@ -73,8 +102,8 @@ int PluginFrame::OnCreate(LPCREATESTRUCT createStruct)
 
     if (!m_toolbar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC))
         return -1;
-    if (!m_toolbar.LoadToolBar(IDR_MAINFRAME, 0, 0, TRUE))
-        return -1;
+    
+    ResetToolbar();
 
     m_toolbar.EnableDocking(CBRS_ALIGN_ANY);
     EnableDocking(CBRS_ALIGN_ANY); 
@@ -123,82 +152,72 @@ void PluginFrame::OnUpdateTracesParserComboBox(CCmdUI *pCmdUI)
 
 void PluginFrame::OnUpdateProcessStartButton(CCmdUI *pCmdUI)
 {
+    CMFCToolBarButton* processStartButton = m_toolbar.GetButton(m_toolbar.CommandToIndex(ID_PROCESS_START_STOP));
+
+    int imageIndex = 0;
+    if (m_startProcessButtonState == StartProcessButtonState::Start)
+        imageIndex = 0;
+    else if (m_startProcessButtonState == StartProcessButtonState::Cancel)
+        imageIndex = 1;
+    else 
+        ASSERT(false);
+
+    if (processStartButton->GetImage() != imageIndex)
+    {
+        processStartButton->SetImage(imageIndex);
+        m_toolbar.InvalidateButton(m_toolbar.CommandToIndex(ID_PROCESS_START_STOP));
+    }
+
     CMFCToolBarComboBoxButton* tracesParserComboBox = 
         dynamic_cast<CMFCToolBarComboBoxButton*>(m_toolbar.GetButton(m_toolbar.CommandToIndex(ID_TRACES_PARSERS)));
     
     pCmdUI->Enable(!!tracesParserComboBox->GetCount());
 }
 
-LRESULT PluginFrame::OnToolbarReset(WPARAM wp, LPARAM)
-{
-	UINT uiToolBarId = (UINT)wp;
-
-	switch (uiToolBarId)
-	{
-		case IDR_MAINFRAME:
-		{
-			m_toolbar.ReplaceButton(ID_TRACES_PARSERS,
-				CMFCToolBarComboBoxButton(ID_TRACES_PARSERS, -1, CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP, 200));
-
-			CMFCToolBarComboBoxButton* tracesParserComboBox = 
-                dynamic_cast<CMFCToolBarComboBoxButton*>(m_toolbar.GetButton(m_toolbar.CommandToIndex(ID_TRACES_PARSERS)));
-
-			tracesParserComboBox->EnableWindow(true);
-			tracesParserComboBox->SetCenterVert();
-			tracesParserComboBox->SetDropDownHeight(25);
-			tracesParserComboBox->SetFlatMode();
-
-			size_t const parsersCount = m_tracesParserProvider.GetCountParsers();
-			if (parsersCount)
-			{
-				for (size_t i = 0; i < parsersCount; ++i)
-				{
-					tstring const parserName = m_tracesParserProvider.GetParser(i).GetName();
-					if (parserName.empty())
-						continue;
-					
-					tracesParserComboBox->AddItem(parserName.c_str(), static_cast<DWORD_PTR>(i));
-				}
-			}
-
-			tracesParserComboBox->SelectItem(0);
-			
-			m_toolbar.OnUpdateCmdUI(this, TRUE);
-
-			break;
-		}
-	}
-	return 0;
-}
-
 void PluginFrame::OnToolbarProcesStart()
 {
-    if (m_schemeContext)
-    {
-        int currentEdit;
-        ::SendMessage(m_info.npp, NPPM_GETCURRENTSCINTILLA, 0, reinterpret_cast<LPARAM>(&currentEdit));
-        Scintilla const scintilla((currentEdit == 0) ? m_info.scintillaMain : m_info.scintillaSecond);
-
-        CMFCToolBarComboBoxButton* tracesParserComboBox =
-            dynamic_cast<CMFCToolBarComboBoxButton*>(m_toolbar.GetButton(m_toolbar.CommandToIndex(ID_TRACES_PARSERS)));
-        
-        if (tracesParserComboBox->GetCount() == 0)
-        {
-            MessageBox(TEXT("Parsers are not loaded"), m_info.name.c_str(), MB_OK | MB_ICONERROR);
-            return;
-        }
-        
-        int const parserIndex = tracesParserComboBox->GetItemData(tracesParserComboBox->GetCurSel());
-        TracesParser const tracesParser = m_tracesParserProvider.GetParser(parserIndex);
-
-        bool result = m_schemeContext->StartAnalysis(scintilla, tracesParser);
-
-        if (!result)
-            MessageBox(TEXT("Еhe analysis process is already in progress"), m_info.name.c_str(), MB_OK | MB_ICONINFORMATION);
-    }
-    else
+    if (!m_schemeContext)
     {
         MessageBox(TEXT("Analysis scheme not loaded"), m_info.name.c_str(), MB_OK | MB_ICONERROR);
+        return;
+    }
+
+    switch (m_startProcessButtonState)
+    {
+        case StartProcessButtonState::Start:
+        {
+            int currentEdit;
+            ::SendMessage(m_info.npp, NPPM_GETCURRENTSCINTILLA, 0, reinterpret_cast<LPARAM>(&currentEdit));
+            Scintilla const scintilla((currentEdit == 0) ? m_info.scintillaMain : m_info.scintillaSecond);
+
+            CMFCToolBarComboBoxButton* tracesParserComboBox =
+                dynamic_cast<CMFCToolBarComboBoxButton*>(m_toolbar.GetButton(m_toolbar.CommandToIndex(ID_TRACES_PARSERS)));
+
+            if (tracesParserComboBox->GetCount() == 0)
+            {
+                MessageBox(TEXT("Parsers are not loaded"), m_info.name.c_str(), MB_OK | MB_ICONERROR);
+                return;
+            }
+
+            int const parserIndex = tracesParserComboBox->GetItemData(tracesParserComboBox->GetCurSel());
+            TracesParser const tracesParser = m_tracesParserProvider.GetParser(parserIndex);
+
+            bool result = m_schemeContext->StartAnalysis(scintilla, tracesParser, this);
+
+            if (!result)
+                MessageBox(TEXT("The analysis process is already in progress"), m_info.name.c_str(), MB_OK | MB_ICONINFORMATION);
+
+            break;
+        }
+
+        case StartProcessButtonState::Cancel:
+        {
+
+            break;
+        }
+
+        default:
+            ASSERT(false);
     }
 }
 
@@ -324,6 +343,44 @@ bool PluginFrame::SaveScheme()
     {
         return false;
     }
+}
+
+void PluginFrame::ResetToolbar()
+{
+    m_toolbar.RemoveAllButtons();
+
+    m_toolbar.SetSizes(CSize(22, 22), CSize(16, 16));
+
+    // ID_TRACES_PARSERS
+    m_toolbar.InsertButton(
+        CMFCToolBarComboBoxButton(ID_TRACES_PARSERS, -1, CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP, 200));
+
+    CMFCToolBarComboBoxButton* tracesParserComboBox =
+        dynamic_cast<CMFCToolBarComboBoxButton*>(m_toolbar.GetButton(m_toolbar.CommandToIndex(ID_TRACES_PARSERS)));
+
+    tracesParserComboBox->EnableWindow(true);
+    tracesParserComboBox->SetCenterVert();
+    tracesParserComboBox->SetDropDownHeight(25);
+    tracesParserComboBox->SetFlatMode();
+
+    size_t const parsersCount = m_tracesParserProvider.GetCountParsers();
+    if (parsersCount)
+    {
+        for (size_t i = 0; i < parsersCount; ++i)
+        {
+            tstring const parserName = m_tracesParserProvider.GetParser(i).GetName();
+            if (parserName.empty())
+                continue;
+
+            tracesParserComboBox->AddItem(parserName.c_str(), static_cast<DWORD_PTR>(i));
+        }
+    }
+
+    tracesParserComboBox->SelectItem(0);
+
+    // ID_PROCESS_START_STOP
+    m_toolbar.InsertButton(
+        CMFCToolBarButton(ID_PROCESS_START_STOP, 0));
 }
 
 void PluginFrame::UpdateCaption()
