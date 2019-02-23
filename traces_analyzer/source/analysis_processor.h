@@ -3,8 +3,9 @@
 #include "scintilla.h"
 #include "traces_parser_provider.h"
 #include "scheme.h"
+#include "notepad_plus_plus.h"
 
-#include <thread>
+#include <condition_variable>
 #include <atomic>
 
 class IAnalysisProcessorFrameCallback
@@ -17,7 +18,8 @@ public:
 
 struct AnalysisProcessContext
 {
-    Scintilla                           scintillaView;
+    NotepadPlusPlus                     notepad;
+    Scintilla                           scintilla;
     TracesParser                        tracesParser;
     IAnalysisProcessorFrameCallback*    frameCallback;
     Scheme&                             scheme;
@@ -31,12 +33,16 @@ public:
 
 public:
     bool StartProcess(AnalysisProcessContext const& analysisProcessContext);
+    void CancelProcess();
 
 private:
-    static void DoWork(AnalysisProcessor* parent, AnalysisProcessContext analysisProcessContext);
+    static void DoWork(AnalysisProcessor* p_this, AnalysisProcessContext analysisProcessContext);
 
 private:
-    std::thread m_processThread;
-    std::atomic<bool> m_inProcess;
+
+    std::mutex              m_processDoneGuard;
+    std::condition_variable m_processDone;
+    std::atomic_bool        m_inProcess;
+    std::atomic_bool        m_doCancel;
 };
 

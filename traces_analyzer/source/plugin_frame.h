@@ -2,6 +2,7 @@
 
 #include "traces_parser_provider.h"
 #include "scheme_context.h"
+#include "notepad_plus_plus.h"
 
 #include "helpers/string.h"
 #include "helpers/non_copyable.h"
@@ -75,6 +76,7 @@ private:
     PluginInfo const                m_info;
     TracesParserProvider            m_tracesParserProvider;
     std::unique_ptr<SchemeContext>  m_schemeContext;
+    NotepadPlusPlus const           m_notepad;
 
     StartProcessButtonState::Enum   m_startProcessButtonState;
 };

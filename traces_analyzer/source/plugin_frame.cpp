@@ -5,7 +5,6 @@
 
 #include "helpers/check.h"
 
-#include "npp/notepad_plus_msgs.h"
 #include "npp/scintilla.h"
 #include "npp/menu_cmd_id.h"
 
@@ -35,13 +34,11 @@ END_MESSAGE_MAP()
 
 PluginFrame::PluginFrame(PluginInfo const& info) :
     m_info(info),
+    m_notepad(info.npp),
     m_startProcessButtonState(StartProcessButtonState::Start)
 {
 	// Путь потом будем брать из настроек
-	TCHAR pluginConfigDir[MAX_PATH] = { 0 };
-	LRESULT const result = ::SendMessage(m_info.npp, NPPM_GETPLUGINSCONFIGDIR, MAX_PATH, (LPARAM)&pluginConfigDir);
-
-	if (!m_tracesParserProvider.Create(tstring(pluginConfigDir)))
+	if (!m_tracesParserProvider.Create(m_notepad.GetPluginsConfigDir()))
 		MessageBox(TEXT("Failed to load traces templates"), m_info.name.c_str(), MB_OK | MB_ICONERROR);
 
     CWinApp* const application = AfxGetApp();
@@ -186,10 +183,6 @@ void PluginFrame::OnToolbarProcesStart()
     {
         case StartProcessButtonState::Start:
         {
-            int currentEdit;
-            ::SendMessage(m_info.npp, NPPM_GETCURRENTSCINTILLA, 0, reinterpret_cast<LPARAM>(&currentEdit));
-            Scintilla const scintilla((currentEdit == 0) ? m_info.scintillaMain : m_info.scintillaSecond);
-
             CMFCToolBarComboBoxButton* tracesParserComboBox =
                 dynamic_cast<CMFCToolBarComboBoxButton*>(m_toolbar.GetButton(m_toolbar.CommandToIndex(ID_TRACES_PARSERS)));
 
@@ -202,7 +195,10 @@ void PluginFrame::OnToolbarProcesStart()
             int const parserIndex = tracesParserComboBox->GetItemData(tracesParserComboBox->GetCurSel());
             TracesParser const tracesParser = m_tracesParserProvider.GetParser(parserIndex);
 
-            bool result = m_schemeContext->StartAnalysis(scintilla, tracesParser, this);
+            HWND const scintillaHandle = m_notepad.GetCurrentScintilla() ? m_info.scintillaSecond : m_info.scintillaMain;
+            Scintilla const scintilla(scintillaHandle);
+
+            bool result = m_schemeContext->StartAnalysis(m_notepad, scintilla, tracesParser, this);
 
             if (!result)
                 MessageBox(TEXT("The analysis process is already in progress"), m_info.name.c_str(), MB_OK | MB_ICONINFORMATION);
@@ -212,7 +208,7 @@ void PluginFrame::OnToolbarProcesStart()
 
         case StartProcessButtonState::Cancel:
         {
-
+            m_schemeContext->CancelAnalysis();
             break;
         }
 

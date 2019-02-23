@@ -89,18 +89,25 @@ Scheme& SchemeContext::GetScheme()
 }
 
 bool SchemeContext::StartAnalysis(
-    Scintilla const& scintillaView,
+    NotepadPlusPlus const& notepad,
+    Scintilla const& scintilla,
     TracesParser const& tracesParser,
     IAnalysisProcessorFrameCallback* frameCallback)
 {
     AnalysisProcessContext processContext = {
-        scintillaView,
+        notepad,
+        scintilla,
         tracesParser,
         frameCallback,
         m_scheme 
     };
 
     return m_analysisProcessor.StartProcess(processContext);
+}
+
+void SchemeContext::CancelAnalysis()
+{
+    m_analysisProcessor.CancelProcess();
 }
 
 void SchemeContext::UpdateViewPanels()

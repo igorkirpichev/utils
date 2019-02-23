@@ -52,9 +52,12 @@ public:
     Scheme& GetScheme();
 
     bool StartAnalysis(
-        Scintilla const& scintillaView,
+        NotepadPlusPlus const& notepad,
+        Scintilla const& scintilla,
         TracesParser const& tracesParser,
         IAnalysisProcessorFrameCallback* frameCallback);
+
+    void CancelAnalysis();
 
 private:
     void UpdateViewPanels();
