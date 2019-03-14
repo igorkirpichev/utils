@@ -18,6 +18,16 @@
     #define ToTString(str)  str
 #endif // UNICODE
 
+template <typename StringType>
+inline StringType& RemoveCarriageReturns(StringType& str)
+{
+    if (str.back() == '\n')
+        str.pop_back();
+    if (str.back() == '\r')
+        str.pop_back();
+
+    return str;
+}
 
 inline std::wstring StringToWString(std::string const& str)
 {

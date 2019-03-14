@@ -29,7 +29,7 @@ public:
 
 private:
     bool MakeTemplate(TiXmlElement* templateNode, std::unique_ptr<SchemeTemplate>& schemeTemplate);
-    bool MakeTracePoint(TiXmlElement* tracePointNode, tstring& regexString);
+    bool MakeTracePoint(TiXmlElement* tracePointNode, TracePoint& tracePoint);
 
 private:
     tstring         m_fileName;

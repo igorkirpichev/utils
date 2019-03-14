@@ -31,6 +31,13 @@ enum TraceLevel
 
 struct TraceTime
 {
+    TraceTime() :
+        hour(0),
+        minute(0),
+        second(0),
+        msecond(0)
+    {}
+
     uint8_t hour;
     uint8_t minute;
     uint8_t second;
@@ -39,6 +46,11 @@ struct TraceTime
 
 struct TraceDescription
 {
+    TraceDescription() :
+        threadId(0),
+        level(WRN)
+    {}
+
     TraceTime   time;
     uint32_t    threadId;
     TraceLevel  level;

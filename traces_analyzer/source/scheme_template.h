@@ -19,10 +19,14 @@ public:
 };
 
 
-class TracePoint
+struct TracePoint
 {
-
-
+    TracePoint() :
+        regex(0)
+    {};
+    
+    std::string expression;
+    bool regex;
 };
 
 
@@ -48,7 +52,7 @@ class SingleSchemeTemplate :
     public SchemeTemplate
 {
 public:
-    SingleSchemeTemplate(tstring const& name, tstring const& regexString);
+    SingleSchemeTemplate(tstring const& name, TracePoint const& tracePoint);
 
 private:
     const SchemeTemplateClassID classId = SingleTemplate;
@@ -68,7 +72,8 @@ class MultipleSchemeTemplate :
     public SchemeTemplate
 {
 public:
-    MultipleSchemeTemplate(tstring const& name, tstring const& beginRegexString, tstring const& endRegexString);
+    MultipleSchemeTemplate(
+        tstring const& name, TracePoint const& beginTracePoint, TracePoint const& endTracePoint);
 
 private:
     const SchemeTemplateClassID classId = MultipleTemplate;

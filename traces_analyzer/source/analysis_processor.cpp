@@ -4,6 +4,7 @@
 #include "npp/notepad_plus_msgs.h"
 
 #include <thread>
+#include <vector>
 
 class ScopedProcessStateSwitch
 {
@@ -42,13 +43,21 @@ AnalysisProcessor::~AnalysisProcessor()
 }
 
 bool AnalysisProcessor::StartProcess(AnalysisProcessContext const& analysisProcessContext)
+try
 {
     if (m_inProcess.load())
         return false;
 
-    std::thread(DoWork, this, analysisProcessContext).detach();
+    m_analysisSession.reset(new AnalysisSession(analysisProcessContext));
+    
+    std::thread(DoWork, this).detach();
 
     return true;
+}
+catch (...)
+{
+    m_analysisSession.reset(nullptr);
+    return false;
 }
 
 void AnalysisProcessor::CancelProcess()
@@ -69,28 +78,118 @@ void AnalysisProcessor::CancelProcess()
     }
 }
 
-void AnalysisProcessor::DoWork(AnalysisProcessor* p_this, AnalysisProcessContext analysisProcessContext)
+void AnalysisProcessor::DoWork(AnalysisProcessor* p_this)
 {
     ASSERT(p_this);
     
     ScopedProcessStateSwitch scopedProcessStateSwitch(p_this->m_inProcess, p_this->m_processDone);
 
-    Scintilla const& scintilla      = analysisProcessContext.scintilla;
-    NotepadPlusPlus const& notepad  = analysisProcessContext.notepad;
-
-    analysisProcessContext.frameCallback->OnStartProcess();
+    AnalysisSession* analysisSession = p_this->m_analysisSession.get();
     
-    tstring const fullCurrentPath = notepad.GetFullCurrentPath();
+    size_t const schemeTemplateCount = analysisSession->scheme.GetCountSchemeTemplates();
+    
+    if (!schemeTemplateCount)
+        return;
+    
+    if (analysisSession->frameCallback)
+        analysisSession->frameCallback->OnStartProcess();
+    
+    analysisSession->notepad.SendMsg(NPPM_SAVECURRENTFILE);
+    analysisSession->notepad.SendMsg(NPPM_HIDETABBAR, 0, 1);
+    analysisSession->scintilla.DirectCall(SCI_SETREADONLY, 1);
 
-    notepad.SendMsg(NPPM_SAVECURRENTFILE);
-    notepad.SendMsg(NPPM_HIDETABBAR, 0, 1);
-    scintilla.DirectCall(SCI_SETREADONLY, 1);
+    for (size_t i = 0; (i < schemeTemplateCount) && !p_this->m_doCancel.load(); ++i)
+    {
+        SchemeTemplate* schemeTemplate = analysisSession->scheme.GetSchemeTemplate(i);
 
-    while (!p_this->m_doCancel.load())
-        Sleep(10);
+        p_this->ProcessSchemeTemplate(schemeTemplate);
+    }
 
-    scintilla.DirectCall(SCI_SETREADONLY, 0);
-    notepad.SendMsg(NPPM_HIDETABBAR, 0, 0);
+    analysisSession->scintilla.DirectCall(SCI_SETREADONLY, 0);
+    analysisSession->notepad.SendMsg(NPPM_HIDETABBAR, 0, 0);
+    
+    if (analysisSession->frameCallback)
+        analysisSession->frameCallback->OnFinishProcess();
+}
 
-    analysisProcessContext.frameCallback->OnFinishProcess();
+void AnalysisProcessor::ProcessSchemeTemplate(SchemeTemplate* schemeTemplate)
+{
+    ASSERT(schemeTemplate);
+
+    switch (schemeTemplate->GetClassID())
+    {
+        case SingleTemplate:
+        {
+            SingleSchemeTemplate* singleSchemeTemplate = static_cast<SingleSchemeTemplate*>(schemeTemplate);
+            ProcessSingleSchemeTemplate(singleSchemeTemplate);
+            break;
+        }
+
+        case MultipleTemplate:
+        {
+            MultipleSchemeTemplate* multipleSchemeTemplate = static_cast<MultipleSchemeTemplate*>(schemeTemplate);
+            ProcessMultipleSchemeTemplate(multipleSchemeTemplate);
+            break;
+        }
+
+        default:
+            ASSERT(false);
+    }
+}
+
+void AnalysisProcessor::ProcessSingleSchemeTemplate(SingleSchemeTemplate* schemeTemplate)
+{
+    ASSERT(schemeTemplate);
+
+    TracePoint tracePoint;
+    schemeTemplate->GetTracePoint(tracePoint);
+
+    Sci_TextToFind textToFind = {0};
+    textToFind.lpstrText = const_cast<char*>(tracePoint.expression.c_str());
+    textToFind.chrg.cpMin = 0;
+    textToFind.chrg.cpMax = m_analysisSession->documentProperties.charCount;
+
+    int searchFlags = 0;
+    if (tracePoint.regex)
+        searchFlags |= SCFIND_REGEXP;
+
+    while (!m_doCancel.load())
+    {
+        int const findedPosition = static_cast<int>(m_analysisSession->scintilla.DirectCall(
+            SCI_FINDTEXT, static_cast<WPARAM>(searchFlags), reinterpret_cast<LPARAM>(&textToFind)));
+
+        if (findedPosition == -1)
+            break;
+
+        int const line = static_cast<int>(m_analysisSession->scintilla.DirectCall(
+            SCI_LINEFROMPOSITION, static_cast<WPARAM>(findedPosition)));
+
+        int const lineLength = static_cast<int>(m_analysisSession->scintilla.DirectCall(
+            SCI_LINELENGTH, static_cast<WPARAM>(line)));
+
+        std::string lineString(static_cast<size_t>(lineLength), 0);
+
+        if (m_analysisSession->scintilla.DirectCall(
+            SCI_GETLINE, static_cast<WPARAM>(line), reinterpret_cast<LPARAM>(lineString.data())))
+        {
+            RemoveCarriageReturns(lineString);
+
+            TraceDescription traceDescription;
+            tstring::const_iterator traceBegin;
+            if (m_analysisSession->tracesParser.Parse(ToTString(lineString), traceDescription, traceBegin, false))
+            {
+
+            }
+        }
+
+        int const lineEndPosition = static_cast<int>(m_analysisSession->scintilla.DirectCall(
+            SCI_GETLINEENDPOSITION, static_cast<WPARAM>(line)));
+        
+        textToFind.chrg.cpMin = lineEndPosition;
+    }
+}
+
+void AnalysisProcessor::ProcessMultipleSchemeTemplate(MultipleSchemeTemplate* schemeTemplate)
+{
+    ASSERT(schemeTemplate);
 }

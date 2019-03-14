@@ -18,9 +18,9 @@ tstring SchemeTemplate::GetName() const
 }
 
 
-SingleSchemeTemplate::SingleSchemeTemplate(tstring const& name, tstring const& regexString) :
+SingleSchemeTemplate::SingleSchemeTemplate(tstring const& name, TracePoint const& tracePoint) :
     SchemeTemplate(name),
-    m_tracePoint(TracePoint())
+    m_tracePoint(tracePoint)
 {
 }
 
@@ -31,10 +31,10 @@ void SingleSchemeTemplate::GetTracePoint(TracePoint& tracePoint) const
 
 
 MultipleSchemeTemplate::MultipleSchemeTemplate(
-    tstring const& name, tstring const& beginRegexString, tstring const& endRegexString) :
+    tstring const& name, TracePoint const& beginTracePoint, TracePoint const& endTracePoint) :
     SchemeTemplate(name),
-    m_beginTracePoint(TracePoint()),
-    m_endTracePoint(TracePoint())
+    m_beginTracePoint(beginTracePoint),
+    m_endTracePoint(endTracePoint)
 {
 }
 

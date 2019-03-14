@@ -13,10 +13,12 @@
 #define XML_TAG_TRACE_POINT         "trace_point"
 #define XML_TAG_BEGIN_TRACE_POINT   "begin_trace_point"
 #define XML_TAG_END_TRACE_POINT     "end_trace_point"
+#define XML_TAG_EXPRESSION          "expression"
 
 // XML attributes
 #define XML_ATTR_TEMPLATE_NAME	    "name"
 #define XML_ATTR_TEMPLATE_CLASS_ID  "class_id"
+#define XML_ATTR_TRACE_POINT_REGEX  "regex"
 
 bool Scheme::Load(tstring const& filePath)
 {
@@ -77,31 +79,31 @@ bool Scheme::MakeTemplate(TiXmlElement* templateNode, std::unique_ptr<SchemeTemp
     {
         case SingleTemplate:
         {
-            tstring regexString;
+            TracePoint tracePoint;
             
             TiXmlElement* tracePointNode = templateNode->FirstChildElement(XML_TAG_TRACE_POINT);
-            if (!MakeTracePoint(tracePointNode, regexString))
+            if (!MakeTracePoint(tracePointNode, tracePoint))
                 return false;
 
-            newSchemeTemplate.reset(new SingleSchemeTemplate(ToTString(schemeTemplateName), regexString));
+            newSchemeTemplate.reset(new SingleSchemeTemplate(ToTString(schemeTemplateName), tracePoint));
             break;
         }
 
         case MultipleTemplate:
         {
-            tstring beginRegexString;
-            tstring endRegexString;
+            TracePoint beginTracePoint;
+            TracePoint endTracePoint;
 
             TiXmlElement* beginTracePointNode = templateNode->FirstChildElement(XML_TAG_BEGIN_TRACE_POINT);
-            if (!MakeTracePoint(beginTracePointNode, beginRegexString))
+            if (!MakeTracePoint(beginTracePointNode, beginTracePoint))
                 return false;
 
             TiXmlElement* endTracePointNode = beginTracePointNode->NextSiblingElement(XML_TAG_END_TRACE_POINT);
-            if (!MakeTracePoint(endTracePointNode, endRegexString))
+            if (!MakeTracePoint(endTracePointNode, endTracePoint))
                 return false;
 
             newSchemeTemplate.reset(
-                new MultipleSchemeTemplate(ToTString(schemeTemplateName), beginRegexString, endRegexString));
+                new MultipleSchemeTemplate(ToTString(schemeTemplateName), beginTracePoint, endTracePoint));
             break;
         }
 
@@ -115,21 +117,28 @@ bool Scheme::MakeTemplate(TiXmlElement* templateNode, std::unique_ptr<SchemeTemp
     return true;
 }
 
-bool Scheme::MakeTracePoint(TiXmlElement* tracePointNode, tstring& regexString)
+bool Scheme::MakeTracePoint(TiXmlElement* tracePointNode, TracePoint& tracePoint)
 {
     if (!tracePointNode)
         return false;
 
-    regexString.clear();
+    TracePoint localTracePoint;
 
-    TiXmlElement* regexNode = tracePointNode->FirstChildElement(XML_TAG_REGEX);
-    if (regexNode)
+    int regexMode = 0;
+    if (!tracePointNode->Attribute(XML_ATTR_TRACE_POINT_REGEX, &regexMode))
+        return false;
+
+    localTracePoint.regex = !!regexMode;
+
+    TiXmlElement* expressionNode = tracePointNode->FirstChildElement(XML_TAG_EXPRESSION);
+    if (expressionNode)
     {
-        if (char const* regexText = regexNode->GetText())
-            regexString = ToTString(regexText);
+        if (char const* expressionText = expressionNode->GetText())
+            localTracePoint.expression = expressionText;
         else
             return false;
-        
+
+        tracePoint = localTracePoint;
         return true;
     }
     else
