@@ -54,7 +54,7 @@ struct TraceDescription
     TraceTime   time;
     uint32_t    threadId;
     TraceLevel  level;
-    tstring     component;
+    std::string component;
 };
 
 struct TraceTemplateValue
@@ -62,12 +62,12 @@ struct TraceTemplateValue
     TraceTemplateValue()
     {};
 
-    TraceTemplateValue(tstring const& regexValue, std::vector<TraceTemplateParam> const& paramsValue) :
+    TraceTemplateValue(std::string const& regexValue, std::vector<TraceTemplateParam> const& paramsValue) :
         regex(regexValue),
         params(paramsValue)
     {};
 
-    tstring regex;
+	std::string regex;
     std::vector<TraceTemplateParam> params;
 };
 
@@ -75,26 +75,26 @@ class TracesParser
 {
 public:
     TracesParser(
-        tstring const& traceTemplateName,
+		std::string const& traceTemplateName,
         TraceTemplateValue const& fullTemplate,
         TraceTemplateValue const& fastTemplate);
 
 private:
-    typedef std::basic_regex<tstring::value_type>   Regex;
-    typedef std::pair<TraceTemplateValue, Regex>    Template;
+    typedef std::basic_regex<std::string::value_type>   Regex;
+    typedef std::pair<TraceTemplateValue, Regex>		Template;
 
 public:
     bool Parse(
-        tstring const& trace,
+		std::string const& trace,
         TraceDescription& traceDescription,
-        tstring::const_iterator& traceTextBegin,
+		std::string::const_iterator& traceTextBegin,
         bool fullMode = true) const;
 
-	tstring GetName() const;
+	std::string GetName() const;
     void GetTemplate(TraceTemplateValue& fullTemplate, TraceTemplateValue& fastTemplate) const;
 
 private:
-	tstring const   m_templateName;
+	std::string const   m_templateName;
 
     Template    m_fullTemplate;
     Template    m_fastTemplate;

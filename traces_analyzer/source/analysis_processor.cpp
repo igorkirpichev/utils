@@ -94,9 +94,9 @@ void AnalysisProcessor::DoWork(AnalysisProcessor* p_this)
     if (analysisSession->frameCallback)
         analysisSession->frameCallback->OnStartProcess();
     
-    analysisSession->notepad.SendMsg(NPPM_SAVECURRENTFILE);
-    analysisSession->notepad.SendMsg(NPPM_HIDETABBAR, 0, 1);
-    analysisSession->scintilla.DirectCall(SCI_SETREADONLY, 1);
+	analysisSession->notepad.SaveCurrentFile();
+	analysisSession->notepad.HideTabBar(true);
+	analysisSession->scintilla.SetReadOnly(true);
 
     for (size_t i = 0; (i < schemeTemplateCount) && !p_this->m_doCancel.load(); ++i)
     {
@@ -105,8 +105,8 @@ void AnalysisProcessor::DoWork(AnalysisProcessor* p_this)
         p_this->ProcessSchemeTemplate(schemeTemplate);
     }
 
-    analysisSession->scintilla.DirectCall(SCI_SETREADONLY, 0);
-    analysisSession->notepad.SendMsg(NPPM_HIDETABBAR, 0, 0);
+    analysisSession->scintilla.SetReadOnly(false);
+	analysisSession->notepad.HideTabBar(false);
     
     if (analysisSession->frameCallback)
         analysisSession->frameCallback->OnFinishProcess();
@@ -147,7 +147,7 @@ void AnalysisProcessor::ProcessSingleSchemeTemplate(SingleSchemeTemplate* scheme
     Sci_TextToFind textToFind = {0};
     textToFind.lpstrText = const_cast<char*>(tracePoint.expression.c_str());
     textToFind.chrg.cpMin = 0;
-    textToFind.chrg.cpMax = m_analysisSession->documentProperties.charCount;
+    textToFind.chrg.cpMax = static_cast<long>(m_analysisSession->documentProperties.charCount);
 
     int searchFlags = 0;
     if (tracePoint.regex)
@@ -155,37 +155,27 @@ void AnalysisProcessor::ProcessSingleSchemeTemplate(SingleSchemeTemplate* scheme
 
     while (!m_doCancel.load())
     {
-        int const findedPosition = static_cast<int>(m_analysisSession->scintilla.DirectCall(
-            SCI_FINDTEXT, static_cast<WPARAM>(searchFlags), reinterpret_cast<LPARAM>(&textToFind)));
+        size_t const findedPosition = m_analysisSession->scintilla.FindText(searchFlags, textToFind);
 
         if (findedPosition == -1)
             break;
 
-        int const line = static_cast<int>(m_analysisSession->scintilla.DirectCall(
-            SCI_LINEFROMPOSITION, static_cast<WPARAM>(findedPosition)));
+        size_t const line = m_analysisSession->scintilla.LineFromPosition(findedPosition);
 
-        int const lineLength = static_cast<int>(m_analysisSession->scintilla.DirectCall(
-            SCI_LINELENGTH, static_cast<WPARAM>(line)));
-
-        std::string lineString(static_cast<size_t>(lineLength), 0);
-
-        if (m_analysisSession->scintilla.DirectCall(
-            SCI_GETLINE, static_cast<WPARAM>(line), reinterpret_cast<LPARAM>(lineString.data())))
+		std::string lineString = m_analysisSession->scintilla.GetLine(line);
+		if (!lineString.empty())
         {
             RemoveCarriageReturns(lineString);
 
             TraceDescription traceDescription;
-            tstring::const_iterator traceBegin;
-            if (m_analysisSession->tracesParser.Parse(ToTString(lineString), traceDescription, traceBegin, false))
+            std::string::const_iterator traceBegin;
+            if (m_analysisSession->tracesParser.Parse(lineString, traceDescription, traceBegin, false))
             {
 
             }
         }
 
-        int const lineEndPosition = static_cast<int>(m_analysisSession->scintilla.DirectCall(
-            SCI_GETLINEENDPOSITION, static_cast<WPARAM>(line)));
-        
-        textToFind.chrg.cpMin = lineEndPosition;
+        textToFind.chrg.cpMin = static_cast<long>(m_analysisSession->scintilla.GetLineEndPosition(line));
     }
 }
 

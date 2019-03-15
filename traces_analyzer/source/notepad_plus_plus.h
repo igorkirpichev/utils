@@ -17,6 +17,8 @@ public:
     tstring GetPluginsConfigDir() const;
     tstring GetFullCurrentPath() const;
     int     GetCurrentScintilla() const;
+	void	SaveCurrentFile() const;
+	void	HideTabBar(bool hide) const;
 
 private:
     HWND const m_notepadHandle;

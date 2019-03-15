@@ -36,3 +36,13 @@ int NotepadPlusPlus::GetCurrentScintilla() const
     ::SendMessage(m_notepadHandle, NPPM_GETCURRENTSCINTILLA, 0, reinterpret_cast<LPARAM>(&currentEdit));
     return currentEdit;
 }
+
+void NotepadPlusPlus::SaveCurrentFile() const
+{
+	::SendMessage(m_notepadHandle, NPPM_SAVECURRENTFILE, 0, 0);
+}
+
+void NotepadPlusPlus::HideTabBar(bool hide) const
+{
+	::SendMessage(m_notepadHandle, NPPM_HIDETABBAR, 0, static_cast<LPARAM>(hide));
+}

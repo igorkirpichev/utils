@@ -29,12 +29,13 @@ struct AnalysisProcessContext
 struct DocumentProperties
 {
     DocumentProperties() :
-        charCount(0)
+        charCount(0),
+		lineCount(0)
     {}
 
-    tstring         fullCurrentPath;
-    unsigned int    charCount;
-    unsigned int    lineCount;
+    tstring   fullCurrentPath;
+    size_t    charCount;
+    size_t    lineCount;
 };
 
 class AnalysisSession :
@@ -45,8 +46,8 @@ public:
         AnalysisProcessContext(analysisProcessContext)
     {
         documentProperties.fullCurrentPath  = notepad.GetFullCurrentPath();
-        documentProperties.charCount        = scintilla.DirectCall(SCI_GETLENGTH);
-        documentProperties.lineCount        = scintilla.DirectCall(SCI_GETLINECOUNT);
+        documentProperties.charCount        = scintilla.GetLength();
+        documentProperties.lineCount        = scintilla.GetLineCount();
     }
 
 public:

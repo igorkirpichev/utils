@@ -14,10 +14,10 @@ namespace std
 
 #define TRACES_TEMPLATES_FILE_NAME  TEXT("traces_templates.xml")
 
-#define DEFAULT_TRACE_TEMPLATE_NAME         TEXT("KAV_KIS")
-#define DEFAULT_TRACE_FULL_TEMPLATE         TEXT("^(\\d{2}):(\\d{2}):(\\d{2}).(\\d{3})\\t0x([\\da-fA-F]{1,4}?)\\t([A-Z]{3})\\t([\\w\\.]+?)\\t")
+#define DEFAULT_TRACE_TEMPLATE_NAME         "KAV_KIS"
+#define DEFAULT_TRACE_FULL_TEMPLATE         "^(\\d{2}):(\\d{2}):(\\d{2}).(\\d{3})\\t0x([\\da-fA-F]{1,4}?)\\t([A-Z]{3})\\t([\\w\\.]+?)\\t"
 #define DEFAULT_TRACE_FULL_TEMPLATE_PARAMS  {Hour, Minute, Second, MSecond, Thread, Level, Component}
-#define DEFAULT_TRACE_FAST_TEMPLATE         TEXT("^.+?\t0x([\\da-fA-F]{1,4}?)\\t.+?\\t.+?\\t")
+#define DEFAULT_TRACE_FAST_TEMPLATE         "^.+?\t0x([\\da-fA-F]{1,4}?)\\t.+?\\t.+?\\t"
 #define DEFAULT_TRACE_FAST_TEMPLATE_PARAMS  {Thread}
 
 // XML tags
@@ -41,13 +41,13 @@ std::map<std::string, TraceTemplateParam> const templateParameters = {
     {"level",   Level},
     {"cmp",     Component} };
 
-std::map<tstring, TraceLevel> const traceLevels = {
-    {TEXT("WRN"), WRN},
-    {TEXT("DBG"), DBG},
-    {TEXT("INF"), INF},
-    {TEXT("ERR"), ERR},
-    {TEXT("ALW"), ALW},
-    {TEXT("IMP"), IMP} };
+std::map<std::string, TraceLevel> const traceLevels = {
+    {"WRN", WRN},
+    {"DBG", DBG},
+    {"INF", INF},
+    {"ERR", ERR},
+    {"ALW", ALW},
+    {"IMP", IMP} };
 
 TracesParser CreateDefaultTracesParser()
 {
@@ -58,7 +58,7 @@ TracesParser CreateDefaultTracesParser()
 }
 
 TracesParser::TracesParser(
-    tstring const& traceTemplateName, TraceTemplateValue const& fullTemplate, TraceTemplateValue const& fastTemplate) :
+    std::string const& traceTemplateName, TraceTemplateValue const& fullTemplate, TraceTemplateValue const& fastTemplate) :
 	m_templateName(traceTemplateName)
 {
     ASSERT(!m_templateName.empty());
@@ -70,9 +70,9 @@ TracesParser::TracesParser(
 }
 
 bool TracesParser::Parse(
-    tstring const& trace, 
+	std::string const& trace,
     TraceDescription& traceDescription,
-    tstring::const_iterator& traceTextBegin,
+	std::string::const_iterator& traceTextBegin,
     bool fullMode/* = true*/) const
 {
     if (trace.empty())
@@ -82,7 +82,7 @@ bool TracesParser::Parse(
 
     Template const& traceTemplate = (fullMode ? m_fullTemplate : m_fastTemplate);
 
-    std::match_results<tstring::const_iterator> result;
+    std::match_results<std::string::const_iterator> result;
 
     if (std::regex_search(trace.begin(), trace.end(), result, traceTemplate.second))
     {
@@ -159,7 +159,7 @@ bool TracesParser::Parse(
         return false;
 }
 
-tstring TracesParser::GetName() const
+std::string TracesParser::GetName() const
 {
 	return m_templateName;
 }
@@ -245,7 +245,7 @@ bool TracesParserProvider::Load()
                 LoadTemplate(fullTemplateNode, fullTemplate) &&
                 LoadTemplate(fastTemplateNode, fastTemplate))
             {
-                TracesParser parser(ToTString(traceTemplateName), fullTemplate, fastTemplate);
+                TracesParser parser(traceTemplateName, fullTemplate, fastTemplate);
                 m_parsers.push_back(parser);
             }
             else
@@ -274,7 +274,7 @@ bool TracesParserProvider::LoadTemplate(TiXmlElement* templateNode, TraceTemplat
     if (regexNode)
     {
         if (char const* regexText = regexNode->GetText())
-            traceTemplateValue.regex = ToTString(regexText);
+            traceTemplateValue.regex = regexText;
         else
             return false;
     }
@@ -320,7 +320,7 @@ bool TracesParserProvider::Save() const
     for (TracesParser const& parser : m_parsers)
     {
         TiXmlElement* templateNode = rootNode->LinkEndChild(new TiXmlElement(XML_TAG_TEMPLATE))->ToElement();
-        templateNode->SetAttribute(XML_ATTR_TEMPLATE_NAME, ToString(parser.GetName()));
+        templateNode->SetAttribute(XML_ATTR_TEMPLATE_NAME, parser.GetName());
 
         TiXmlElement* fullTemplateNode =
             templateNode->LinkEndChild(new TiXmlElement(XML_TAG_TEMPLATE_FULL_MODE))->ToElement();
@@ -347,7 +347,7 @@ void TracesParserProvider::SaveTemplate(TiXmlElement* templateNode, TraceTemplat
     TiXmlElement* regexNode =
         templateNode->LinkEndChild(new TiXmlElement(XML_TAG_REGEX))->ToElement();
 
-    regexNode->LinkEndChild(new TiXmlText(ToString(templateValue.regex)));
+    regexNode->LinkEndChild(new TiXmlText(templateValue.regex));
 
     TiXmlElement* paramsNode =
         templateNode->LinkEndChild(new TiXmlElement(XML_TAG_PARAMS))->ToElement();

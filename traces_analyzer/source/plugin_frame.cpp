@@ -192,8 +192,8 @@ void PluginFrame::OnToolbarProcesStart()
                 return;
             }
 
-            int const parserIndex = tracesParserComboBox->GetItemData(tracesParserComboBox->GetCurSel());
-            TracesParser const tracesParser = m_tracesParserProvider.GetParser(parserIndex);
+            DWORD_PTR const parserIndex = tracesParserComboBox->GetItemData(tracesParserComboBox->GetCurSel());
+            TracesParser const tracesParser = m_tracesParserProvider.GetParser(static_cast<size_t>(parserIndex));
 
             HWND const scintillaHandle = m_notepad.GetCurrentScintilla() ? m_info.scintillaSecond : m_info.scintillaMain;
             Scintilla const scintilla(scintillaHandle);
@@ -364,7 +364,7 @@ void PluginFrame::ResetToolbar()
     {
         for (size_t i = 0; i < parsersCount; ++i)
         {
-            tstring const parserName = m_tracesParserProvider.GetParser(i).GetName();
+            tstring const parserName = ToTString(m_tracesParserProvider.GetParser(i).GetName());
             if (parserName.empty())
                 continue;
 
