@@ -78,8 +78,7 @@ bool TracesParser::Parse(
     if (trace.empty())
         return false;
 
-    traceDescription    = { 0 };
-    traceTextBegin      = trace.end();
+    traceTextBegin = trace.end();
 
     Template const& traceTemplate = (fullMode ? m_fullTemplate : m_fastTemplate);
 
@@ -92,7 +91,7 @@ bool TracesParser::Parse(
         if ((result.size() - 1) != params.size())
             return false;
 
-        TraceDescription description = {0};
+        TraceDescription description;
 
         auto paramIterator = params.begin();
         for (auto resultIterator = ++result.begin();
