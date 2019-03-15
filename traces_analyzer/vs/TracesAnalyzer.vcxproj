@@ -25,6 +25,7 @@
     <ClInclude Include="..\include\npp\scintilla.h" />
     <ClInclude Include="..\resource\resource.h" />
     <ClInclude Include="..\source\analysis_processor.h" />
+    <ClInclude Include="..\source\analysis_result.h" />
     <ClInclude Include="..\source\helpers\check.h" />
     <ClInclude Include="..\source\helpers\non_copyable.h" />
     <ClInclude Include="..\source\helpers\string.h" />
@@ -41,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\source\analysis_processor.cpp" />
+    <ClCompile Include="..\source\analysis_result.cpp" />
     <ClCompile Include="..\source\main.cpp" />
     <ClCompile Include="..\source\notepad_plus_plus.cpp" />
     <ClCompile Include="..\source\plugin_application.cpp" />

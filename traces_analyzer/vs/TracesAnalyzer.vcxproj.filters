@@ -40,6 +40,9 @@
     <ClCompile Include="..\source\notepad_plus_plus.cpp">
       <Filter>source</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\analysis_result.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\helpers\check.h">
@@ -97,6 +100,9 @@
       <Filter>source</Filter>
     </ClInclude>
     <ClInclude Include="..\source\notepad_plus_plus.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\analysis_result.h">
       <Filter>source</Filter>
     </ClInclude>
   </ItemGroup>

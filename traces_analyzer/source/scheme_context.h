@@ -4,6 +4,7 @@
 #include "scintilla.h"
 #include "traces_parser_provider.h"
 #include "analysis_processor.h"
+#include "analysis_result.h"
 
 #include "helpers/string.h"
 
@@ -68,5 +69,6 @@ private:
     AnalysisProcessor   m_analysisProcessor;
 
     Scheme              m_scheme;
+	AnalysisResult		m_analysisResult;
     ViewPanels          m_viewPanels;
 };

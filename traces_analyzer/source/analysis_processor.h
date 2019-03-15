@@ -24,6 +24,7 @@ struct AnalysisProcessContext
     TracesParser                        tracesParser;
     IAnalysisProcessorFrameCallback*    frameCallback;
     Scheme&                             scheme;
+	AnalysisResult&						analysisResult;
 };
 
 struct DocumentProperties
